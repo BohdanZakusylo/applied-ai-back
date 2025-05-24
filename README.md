@@ -8,7 +8,7 @@ python -m venv ./.venv
 macos
 python -m venv ./.venv
 
-source .venv/bin/
+source .venv/bin/activate
 
 after that for both platforms:
 
