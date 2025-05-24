@@ -10,6 +10,8 @@ applied-ai-back/
 ├── requirements.txt        # Python dependencies
 ├── app/
 │   ├── config.py          # Application configuration
+│   ├── api/               # API versioning
+│   │   └── v1.py          # API v1 router
 │   ├── models/            # Pydantic models for request/response
 │   │   ├── auth.py        # Authentication models
 │   │   ├── user.py        # User profile models
@@ -62,31 +64,33 @@ applied-ai-back/
 
 ## API Endpoints
 
-### Authentication (`/auth`)
-- `POST /auth/register` - Register new user
-- `POST /auth/login` - User login
-- `POST /auth/refresh` - Refresh JWT token
-- `POST /auth/logout` - User logout
-- `POST /auth/forgot-password` - Request password reset
-- `POST /auth/reset-password` - Reset password
+All endpoints are prefixed with `/api/v1/`
 
-### Users (`/users`)
-- `GET /users/profile` - Get user profile
-- `PUT /users/profile` - Update user profile
-- `DELETE /users/profile` - Delete user account
+### Authentication (`/api/v1/auth`)
+- `POST /api/v1/auth/register` - Register new user
+- `POST /api/v1/auth/login` - User login
+- `POST /api/v1/auth/refresh` - Refresh JWT token
+- `POST /api/v1/auth/logout` - User logout
+- `POST /api/v1/auth/forgot-password` - Request password reset
+- `POST /api/v1/auth/reset-password` - Reset password
 
-### Chat (`/chat`)
-- `POST /chat/message` - Send message to AI
-- `GET /chat/history` - Get conversation history
-- `DELETE /chat/history` - Clear chat history
+### Users (`/api/v1/users`)
+- `GET /api/v1/users/profile` - Get user profile
+- `PUT /api/v1/users/profile` - Update user profile
+- `DELETE /api/v1/users/profile` - Delete user account
 
-### Files (`/files`)
-- `POST /files/upload` - Upload insurance documents
-- `GET /files/{file_id}` - Get file information
-- `DELETE /files/{file_id}` - Delete file
+### Chat (`/api/v1/chat`)
+- `POST /api/v1/chat/message` - Send message to AI
+- `GET /api/v1/chat/history` - Get conversation history
+- `DELETE /api/v1/chat/history` - Clear chat history
 
-### Health
-- `GET /health` - API health status
+### Files (`/api/v1/files`)
+- `POST /api/v1/files/upload` - Upload insurance documents
+- `GET /api/v1/files/{file_id}` - Get file information
+- `DELETE /api/v1/files/{file_id}` - Delete file
+
+### Health (`/api/v1/health`)
+- `GET /api/v1/health` - API health status
 
 ## Documentation
 
@@ -101,3 +105,4 @@ applied-ai-back/
 - OpenAI API integration needs to be implemented
 - File upload storage needs to be configured
 - This is the initial API structure for the first sprint
+- API follows versioning with `/api/v1/` prefix for future scalability

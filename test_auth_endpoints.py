@@ -67,7 +67,7 @@ def print_test_result(test_name: str, result: Dict[str, Any], expected_status: i
 
 def main():
     """Run authentication tests"""
-    print("🚀 AI Healthcare Assistant API - Authentication Test")
+    print("🚀 AI Healthcare Assistant API v1 - Authentication Test")
     print("This script demonstrates protected vs public endpoints")
     
     # Test headers
@@ -82,13 +82,13 @@ def main():
     # 1. Test public endpoints (should work without auth)
     print_test_result(
         "Health Check (Public)",
-        make_request("GET", "/health", no_auth_headers),
+        make_request("GET", "/api/v1/health", no_auth_headers),
         expected_status=200
     )
     
     print_test_result(
         "User Registration (Public)", 
-        make_request("POST", "/auth/register", no_auth_headers, {
+        make_request("POST", "/api/v1/auth/register", no_auth_headers, {
             "email": "test@example.com",
             "password": "testpassword123",
             "first_name": "Test",
@@ -99,7 +99,7 @@ def main():
     
     print_test_result(
         "User Login (Public)",
-        make_request("POST", "/auth/login", no_auth_headers, {
+        make_request("POST", "/api/v1/auth/login", no_auth_headers, {
             "email": "test@example.com", 
             "password": "testpassword123"
         }),
@@ -111,13 +111,13 @@ def main():
     # 2. Test protected endpoints WITHOUT auth (should return 401)
     print_test_result(
         "Get User Profile (No Auth - Should Fail)",
-        make_request("GET", "/users/profile", no_auth_headers),
+        make_request("GET", "/api/v1/users/profile", no_auth_headers),
         expected_status=401
     )
     
     print_test_result(
         "Send Chat Message (No Auth - Should Fail)",
-        make_request("POST", "/chat/message", no_auth_headers, {
+        make_request("POST", "/api/v1/chat/message", no_auth_headers, {
             "message": "What does my insurance cover?"
         }),
         expected_status=401
@@ -125,13 +125,13 @@ def main():
     
     print_test_result(
         "Get Chat History (No Auth - Should Fail)",
-        make_request("GET", "/chat/history", no_auth_headers),
+        make_request("GET", "/api/v1/chat/history", no_auth_headers),
         expected_status=401
     )
     
     print_test_result(
         "Logout (No Auth - Should Fail)",
-        make_request("POST", "/auth/logout", no_auth_headers),
+        make_request("POST", "/api/v1/auth/logout", no_auth_headers),
         expected_status=401
     )
     
@@ -140,13 +140,13 @@ def main():
     # 3. Test protected endpoints WITH auth (should work)
     print_test_result(
         "Get User Profile (With Auth - Should Work)",
-        make_request("GET", "/users/profile", auth_headers),
+        make_request("GET", "/api/v1/users/profile", auth_headers),
         expected_status=200
     )
     
     print_test_result(
         "Send Chat Message (With Auth - Should Work)",
-        make_request("POST", "/chat/message", auth_headers, {
+        make_request("POST", "/api/v1/chat/message", auth_headers, {
             "message": "What does my insurance cover?",
             "context": {"user_type": "international_student"}
         }),
@@ -155,7 +155,7 @@ def main():
     
     print_test_result(
         "Update User Profile (With Auth - Should Work)",
-        make_request("PUT", "/users/profile", auth_headers, {
+        make_request("PUT", "/api/v1/users/profile", auth_headers, {
             "first_name": "Updated",
             "last_name": "Name"
         }),
@@ -164,13 +164,13 @@ def main():
     
     print_test_result(
         "Get Chat History (With Auth - Should Work)",
-        make_request("GET", "/chat/history", auth_headers),
+        make_request("GET", "/api/v1/chat/history", auth_headers),
         expected_status=200
     )
     
     print_test_result(
         "Logout (With Auth - Should Work)",
-        make_request("POST", "/auth/logout", auth_headers),
+        make_request("POST", "/api/v1/auth/logout", auth_headers),
         expected_status=200
     )
     
@@ -179,6 +179,7 @@ def main():
     print("❌ Protected endpoints return 401 without authentication") 
     print("✅ Protected endpoints work with Bearer token")
     print("🔒 This demonstrates proper API security implementation")
+    print("🚀 All endpoints now use /api/v1/ prefix for versioning")
     print("\nNote: JWT validation is placeholder - implement actual validation in production!")
 
 if __name__ == "__main__":

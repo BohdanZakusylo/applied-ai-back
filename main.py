@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
-from app.routers import auth, users, chat, files, health
+from app.api.v1 import api_v1_router
 
 # Create FastAPI app instance
 app = FastAPI(
@@ -21,12 +21,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include all routers
-app.include_router(health.router)
-app.include_router(auth.router)
-app.include_router(users.router)
-app.include_router(chat.router)
-app.include_router(files.router)
+# Include API v1 router
+app.include_router(api_v1_router)
 
 # Root endpoint
 @app.get("/")
@@ -35,5 +31,7 @@ def read_root():
         "message": "AI Healthcare Assistant API",
         "status": "running",
         "docs": "/docs",
-        "version": "1.0.0"
+        "version": "1.0.0",
+        "api_version": "v1",
+        "endpoints": "/api/v1/"
     }
