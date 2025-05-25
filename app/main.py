@@ -28,7 +28,7 @@ app.include_router(api_v1_router)
 @app.get("/")
 def read_root():
     return {
-        "message": "AI Healthcare Assistant API",
+        "message": "AI Healthcare Assistant API hello",
         "status": "running",
         "docs": "/docs",
         "version": "1.0.0",
