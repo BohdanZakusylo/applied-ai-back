@@ -1,5 +1,5 @@
-import jwt
 import datetime
+import jwt
 
 PRIVATE_KEY_PATH = "app/keys/private_key.pem"
 PUBLIC_KEY_PATH = "app/keys/public_key.pem"
@@ -13,13 +13,26 @@ def load_keys():
 
 def create_jwt(user_id: int) -> str:
     private_key, _ = load_keys()
+    issue_time = datetime.datetime.utcnow()
+    lifetime = datetime.timedelta(hours=1)
+
     payload = {
         "user_id": user_id,
-        "issue_time": datetime.datetime.utcnow().isoformat(),
-        "expiration_time": (datetime.datetime.utcnow() + datetime.timedelta(hours=1)).isoformat()
+        "issue_time": issue_time.isoformat(),
+        "lifetime_minutes": lifetime.total_seconds() / 60
     }
+
     return jwt.encode(payload, private_key, algorithm="RS256")
 
 def decode_jwt(token: str) -> dict:
     _, public_key = load_keys()
-    return jwt.decode(token, public_key, algorithms=["RS256"])
+    payload = jwt.decode(token, public_key, algorithms=["RS256"])
+
+    issue_time = datetime.datetime.fromisoformat(payload["issue_time"])
+    lifetime = datetime.timedelta(minutes=payload["lifetime_minutes"])
+    now = datetime.datetime.utcnow()
+
+    if now > issue_time + lifetime:
+        raise Exception("Token expired")
+
+    return payload
