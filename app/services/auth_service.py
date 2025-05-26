@@ -1,6 +1,8 @@
 # Authentication Service
 # This module will contain authentication-related business logic
 
+from app.services.jwt_service import create_jwt, decode_jwt
+
 class AuthService:
     """
     Service class for handling authentication operations
@@ -24,19 +26,14 @@ class AuthService:
     
     @staticmethod
     async def create_access_token(user_id: str):
-        """
-        Create JWT access token
-        TODO: Implement JWT token creation
-        """
-        pass
+        return create_jwt(user_id)
     
     @staticmethod
     async def verify_token(token: str):
-        """
-        Verify JWT token
-        TODO: Implement JWT token verification
-        """
-        pass
+        try:
+          return decode_jwt(token)
+        except Exception as e:
+          return {"error": str(e)}
     
     @staticmethod
     async def send_password_reset_email(email: str):
