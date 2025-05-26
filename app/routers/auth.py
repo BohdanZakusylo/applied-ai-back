@@ -10,6 +10,12 @@ from app.models.auth import (
 )
 from app.dependencies import get_current_user
 
+from fastapi import APIRouter, HTTPException, status, Depends
+from sqlalchemy.ext.asyncio import AsyncSession
+from app.models.auth import UserLogin, Token
+from app.dependencies import get_db
+from app.services.auth_service import AuthService
+
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 @router.post("/register", response_model=AuthResponse, status_code=status.HTTP_201_CREATED)
@@ -26,18 +32,20 @@ async def register(user_data: UserRegister):
     return AuthResponse(message="User registered successfully", user_id="placeholder-user-id")
 
 @router.post("/login", response_model=Token)
-async def login(credentials: UserLogin):
-    """
-    Authenticate user and return JWT token
-    """
-    # TODO: Implement login logic
-    # - Validate credentials against database
-    # - Generate JWT access token
-    # - Return token with expiration
+async def login(credentials: UserLogin, db: AsyncSession = Depends(get_db)):
+    if not credentials.email or not credentials.password:
+        raise HTTPException(status_code=400, detail="Email and password are required.")
+
+    user = await AuthService.authenticate_user(credentials.email, credentials.password, db)
+
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid email or password.")
+
+    token = await AuthService.create_access_token(str(user.id))
     return Token(
-        access_token="placeholder-jwt-token",
+        access_token=token,
         token_type="bearer",
-        expires_in=1800
+        expires_in=3600
     )
 
 @router.post("/refresh", response_model=Token)
