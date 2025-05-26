@@ -389,4 +389,6 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
+app/keys/
+
 # End of https://www.toptal.com/developers/gitignore/api/python,macos,venv,jetbrains+all,jetbrains+iml,windows
