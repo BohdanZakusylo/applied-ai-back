@@ -10,10 +10,8 @@ from app.models.auth import (
 )
 from app.dependencies import get_current_user
 
-from fastapi import APIRouter, HTTPException, status, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import APIRouter, HTTPException, status
 from app.models.auth import UserLogin, Token
-from app.dependencies import get_db
 from app.services.auth_service import AuthService
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
@@ -32,16 +30,23 @@ async def register(user_data: UserRegister):
     return AuthResponse(message="User registered successfully", user_id="placeholder-user-id")
 
 @router.post("/login", response_model=Token)
-async def login(credentials: UserLogin, db: AsyncSession = Depends(get_db)):
+async def login(credentials: UserLogin):
     if not credentials.email or not credentials.password:
-        raise HTTPException(status_code=400, detail="Email and password are required.")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email and password are required."
+        )
 
-    user = await AuthService.authenticate_user(credentials.email, credentials.password, db)
+    user = AuthService.authenticate_user(credentials.email, credentials.password)
 
     if not user:
-        raise HTTPException(status_code=401, detail="Invalid email or password.")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid email or password."
+        )
 
-    token = await AuthService.create_access_token(str(user.id))
+    token = AuthService.create_access_token(str(user.id))
+
     return Token(
         access_token=token,
         token_type="bearer",

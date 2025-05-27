@@ -3,10 +3,11 @@
 
 from app.services.jwt_service import create_jwt, decode_jwt
 
-import bcrypt
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.future import select
+from hashlib import sha256
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 from app.orm.db_user import User
+from app.orm.engine import SessionLocal
 from app.services.jwt_service import create_jwt
 
 class AuthService:
@@ -23,20 +24,23 @@ class AuthService:
         pass
     
     @staticmethod
-    async def authenticate_user(email: str, password: str, db: AsyncSession):
-      """
-      Authenticate user credentials
-      """
-      result = await db.execute(select(User).where(User.email == email))
-      user = result.scalar_one_or_none()
+    async def authenticate_user(email: str, password: str):
+        session = SessionLocal()
+        try:
+            stmt = select(User).where(User.email == email)
+            user = session.scalars(stmt).first()
 
-      if not user:
-          return None
+            if not user:
+                return None
 
-      if not bcrypt.checkpw(password.encode("utf-8"), user.password.encode("utf-8")):
-          return None
+            hashed_input_pw = sha256(password.strip().encode('utf-8')).hexdigest()
 
-      return user
+            if user.password != hashed_input_pw:
+                return None
+
+            return user
+        finally:
+            session.close()
 
     @staticmethod
     async def create_access_token(user_id: str):
