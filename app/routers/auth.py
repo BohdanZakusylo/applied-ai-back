@@ -9,43 +9,31 @@ from app.models.auth import (
     AuthResponse
 )
 from app.dependencies import get_current_user
-
-from fastapi import APIRouter, HTTPException, status, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
-from app.models.auth import UserLogin, Token
-from app.dependencies import get_db
 from app.services.auth_service import AuthService
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 @router.post("/register", response_model=AuthResponse, status_code=status.HTTP_201_CREATED)
 async def register(user_data: UserRegister):
-    """
-    Register a new user account
-    """
-    # TODO: Implement user registration logic
-    # - Validate email format
-    # - Check if user already exists
-    # - Hash password
-    # - Save user to database
-    # - Generate JWT token
+    authService = AuthService();
+    await authService.register_user(
+        user_data.email, user_data.password, user_data.name, user_data.insurance_provider, user_data.general_practitioner, user_data.medical_information
+    )
     return AuthResponse(message="User registered successfully", user_id="placeholder-user-id")
 
 @router.post("/login", response_model=Token)
-async def login(credentials: UserLogin, db: AsyncSession = Depends(get_db)):
-    if not credentials.email or not credentials.password:
-        raise HTTPException(status_code=400, detail="Email and password are required.")
-
-    user = await AuthService.authenticate_user(credentials.email, credentials.password, db)
-
-    if not user:
-        raise HTTPException(status_code=401, detail="Invalid email or password.")
-
-    token = await AuthService.create_access_token(str(user.id))
+async def login(credentials: UserLogin):
+    """
+    Authenticate user and return JWT token
+    """
+    # TODO: Implement login logic
+    # - Validate credentials against database
+    # - Generate JWT access token
+    # - Return token with expiration
     return Token(
-        access_token=token,
+        access_token="placeholder-jwt-token",
         token_type="bearer",
-        expires_in=3600
+        expires_in=1800
     )
 
 @router.post("/refresh", response_model=Token)
