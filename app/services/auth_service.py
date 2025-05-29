@@ -15,7 +15,6 @@ class AuthService:
     Service class for handling authentication operations
     """
     
-    #TODO password is sent incorrectly
     @staticmethod
     async def register_user(email, password, name, insurance_provider : str | None = None, general_practitioner : str | None = None, medical_information : str | None = None):
         if(not email or not password or not name):
