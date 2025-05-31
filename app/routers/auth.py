@@ -63,22 +63,21 @@ async def logout(current_user: str = Depends(get_current_user)):
 @router.post("/forgot-password", response_model=AuthResponse)
 async def forgot_password(email_data: ForgotPassword):
     """
-    Request password reset token
+    Request password reset code
     """
-    # TODO: Implement forgot password logic
-    # - Check if email exists in database
-    # - Generate password reset token
-    # - Send email with reset link
-    return AuthResponse(message="Password reset email sent")
+    authService = AuthService()
+    await authService.request_password_reset(email_data.email)
+    return AuthResponse(message="Password reset code sent to your email")
 
 @router.post("/reset-password", response_model=AuthResponse)
 async def reset_password(reset_data: ResetPassword):
     """
-    Reset password using token
+    Reset password using verification code
     """
-    # TODO: Implement password reset logic
-    # - Validate reset token
-    # - Hash new password
-    # - Update password in database
-    # - Invalidate reset token
+    authService = AuthService()
+    await authService.reset_password_with_code(
+        reset_data.email, 
+        reset_data.code, 
+        reset_data.new_password
+    )
     return AuthResponse(message="Password reset successfully") 
