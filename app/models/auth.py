@@ -4,8 +4,10 @@ from typing import Optional
 class UserRegister(BaseModel):
     email: EmailStr
     password: str
-    first_name: Optional[str] = None
-    last_name: Optional[str] = None
+    name: str
+    insurance_provider: Optional[str] = None
+    general_practitioner: Optional[str] = None
+    medical_information: Optional[str] = None
 
 class UserLogin(BaseModel):
     email: EmailStr

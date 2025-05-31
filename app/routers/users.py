@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, status, Depends
-from app.models.user import UserProfile, UserProfileUpdate, UserProfileResponse
+from app.models.user import DatabaseUser, UserProfileUpdate, UserProfileResponse
 from app.dependencies import get_current_user
 from datetime import datetime
 
@@ -18,7 +18,7 @@ async def get_user_profile(current_user: str = Depends(get_current_user)):
     # - Use current_user (user ID from JWT token)
     # - Fetch user data from database
     # - Return user profile
-    mock_user = UserProfile(
+    mock_user = DatabaseUser(
         id=current_user,
         email="user@example.com",
         first_name="John",
@@ -38,7 +38,7 @@ async def update_user_profile(profile_update: UserProfileUpdate, current_user: s
     # - Validate updated data
     # - Update user data in database
     # - Return updated profile
-    updated_user = UserProfile(
+    updated_user = DatabaseUser(
         id=current_user,
         email="user@example.com",
         first_name=profile_update.first_name or "John",
