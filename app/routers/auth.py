@@ -26,14 +26,18 @@ async def login(credentials: UserLogin):
     """
     Authenticate user and return JWT token
     """
-    # TODO: Implement login logic
-    # - Validate credentials against database
-    # - Generate JWT access token
-    # - Return token with expiration
+    authService = AuthService()
+    
+    # Authenticate user credentials
+    user = await authService.authenticate_user(credentials.email, credentials.password)
+    
+    # Generate JWT access token
+    access_token = await authService.create_access_token(user.id)
+    
     return Token(
-        access_token="placeholder-jwt-token",
+        access_token=access_token,
         token_type="bearer",
-        expires_in=1800
+        expires_in=3600  # 1 hour
     )
 
 @router.post("/refresh", response_model=Token)
