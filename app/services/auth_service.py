@@ -209,9 +209,47 @@ class AuthService:
     async def authenticate_user(email: str, password: str):
         """
         Authenticate user credentials
-        TODO: Implement user authentication logic
         """
-        pass
+        try:
+            email = validate_email(email).email
+        except EmailNotValidError:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Invalid email address"
+            )
+        
+        session = SessionLocal()
+        try:
+            # Get user from database
+            user = session.query(User).filter_by(email=email).first()
+            if not user:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Invalid email or password"
+                )
+            
+            # Hash the provided password and compare with stored hash
+            hashed_password = sha256(password.encode('utf-8')).hexdigest()
+            
+            if user.password != hashed_password:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Invalid email or password"
+                )
+            
+            session.close()
+            return user
+            
+        except HTTPException:
+            session.close()
+            raise
+        except Exception as e:
+            session.rollback()
+            print(e)
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Error during authentication"
+            )
     
     @staticmethod
     async def create_access_token(user_id: str):
