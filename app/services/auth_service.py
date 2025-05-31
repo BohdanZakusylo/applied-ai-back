@@ -69,14 +69,19 @@ class AuthService:
 
             return user
     
-
+        except HTTPException:
+            # Re-raise HTTPExceptions so they reach the client with correct status codes
+            session.close()
+            raise
         except Exception as e:
             session.rollback();
             print(e)
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Internal error registering user."
-            ) 
+            )
+        finally:
+            session.close()
     
     @staticmethod
     async def request_password_reset(email: str):
