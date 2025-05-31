@@ -26,14 +26,18 @@ async def login(credentials: UserLogin):
     """
     Authenticate user and return JWT token
     """
-    # TODO: Implement login logic
-    # - Validate credentials against database
-    # - Generate JWT access token
-    # - Return token with expiration
+    authService = AuthService()
+    
+    # Authenticate user credentials
+    user = await authService.authenticate_user(credentials.email, credentials.password)
+    
+    # Generate JWT access token
+    access_token = await authService.create_access_token(user.id)
+    
     return Token(
-        access_token="placeholder-jwt-token",
+        access_token=access_token,
         token_type="bearer",
-        expires_in=1800
+        expires_in=3600  # 1 hour
     )
 
 @router.post("/refresh", response_model=Token)
@@ -63,22 +67,21 @@ async def logout(current_user: str = Depends(get_current_user)):
 @router.post("/forgot-password", response_model=AuthResponse)
 async def forgot_password(email_data: ForgotPassword):
     """
-    Request password reset token
+    Request password reset code
     """
-    # TODO: Implement forgot password logic
-    # - Check if email exists in database
-    # - Generate password reset token
-    # - Send email with reset link
-    return AuthResponse(message="Password reset email sent")
+    authService = AuthService()
+    await authService.request_password_reset(email_data.email)
+    return AuthResponse(message="Password reset code sent to your email")
 
 @router.post("/reset-password", response_model=AuthResponse)
 async def reset_password(reset_data: ResetPassword):
     """
-    Reset password using token
+    Reset password using verification code
     """
-    # TODO: Implement password reset logic
-    # - Validate reset token
-    # - Hash new password
-    # - Update password in database
-    # - Invalidate reset token
+    authService = AuthService()
+    await authService.reset_password_with_code(
+        reset_data.email, 
+        reset_data.code, 
+        reset_data.new_password
+    )
     return AuthResponse(message="Password reset successfully") 
