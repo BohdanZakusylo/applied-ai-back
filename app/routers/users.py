@@ -14,19 +14,11 @@ async def get_user_profile(current_user: str = Depends(get_current_user)):
     """
     Get current user's profile information
     """
-    # TODO: Implement get profile logic
-    # - Use current_user (user ID from JWT token)
-    # - Fetch user data from database
-    # - Return user profile
-    mock_user = DatabaseUser(
-        id=current_user,
-        email="user@example.com",
-        first_name="John",
-        last_name="Doe",
-        created_at=datetime.now(),
-        updated_at=datetime.now()
-    )
-    return UserProfileResponse(user=mock_user, message="Profile retrieved successfully")
+    user = UserService.get_user_profile(current_user)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    return UserProfileResponse(user=user, message="Profile retrieved successfully")
 
 @router.put("/profile", response_model=UserProfileResponse)
 async def update_user_profile(profile_update: UserProfileUpdate, current_user: str = Depends(get_current_user)):

@@ -1,18 +1,27 @@
 # User Service
 # This module will contain user-related business logic
 
+from app.orm.engine import SessionLocal
+from app.orm.db_user import User
+
 class UserService:
     """
     Service class for handling user operations
     """
     
     @staticmethod
-    async def get_user_profile(user_id: str):
+    def get_user_profile(user_id: int):
         """
         Get user profile by ID
-        TODO: Implement user profile retrieval
         """
-        pass
+        db = SessionLocal()
+        try:
+          user = db.query(User).filter(User.id == user_id).first()
+          if not user:
+            raise ValueError("User not found")
+          return user
+        finally:
+          db.close()
     
     @staticmethod
     async def update_user_profile(user_id: str, update_data: dict):
