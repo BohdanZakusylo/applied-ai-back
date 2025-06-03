@@ -7,26 +7,38 @@ from app.models.chat import (
     ChatStatusResponse
 )
 from app.dependencies import get_current_user
+from app.AI.integration.rag_service import RAGService
 from datetime import datetime
 
 router = APIRouter(prefix="/chat", tags=["Chat"])
+
+# ITH-94: Integrate trained ChatpGPT with API
+rag_service = RAGService()
 
 @router.post("/message", response_model=ChatResponse)
 async def send_message(message: ChatMessage, current_user: str = Depends(get_current_user)):
     """
     Send message to AI assistant and get response
+    ITH-94: Integrated with RAG pipeline for insurance-specific answers
     """
-    # TODO: Implement chat message logic
-    # - Use current_user (user ID from JWT token)
-    # - Send message to OpenAI API
-    # - Process AI response
-    # - Save conversation to database
-    # - Return AI response
-    return ChatResponse(
-        response=f"This is a placeholder response from the AI assistant regarding Dutch insurance matters for user {current_user}.",
-        message_id="placeholder-message-id",
-        timestamp=datetime.now()
-    )
+    try:
+        # ITH-94: Process message through RAG pipeline
+        ai_response = rag_service.process_query(current_user, message.content)
+        
+        # TODO: Save conversation to database
+        
+        return ChatResponse(
+            response=ai_response.get("answer", "I'm sorry, I couldn't process your request."),
+            message_id=ai_response.get("message_id", "generated-id"),
+            timestamp=datetime.now()
+        )
+    except Exception as e:
+        # Fallback to placeholder if AI fails
+        return ChatResponse(
+            response=f"This is a placeholder response from the AI assistant regarding Dutch insurance matters for user {current_user}.",
+            message_id="placeholder-message-id", 
+            timestamp=datetime.now()
+        )
 
 @router.get("/history", response_model=ChatHistoryResponse)
 async def get_chat_history(current_user: str = Depends(get_current_user), limit: int = 50, offset: int = 0):

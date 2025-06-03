@@ -1,0 +1,1 @@
+# ITH-87 & ITH-89: Connect pinecone storage to ChatGPT environment 
