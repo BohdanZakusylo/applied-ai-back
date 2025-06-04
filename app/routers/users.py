@@ -1,24 +1,21 @@
 from fastapi import APIRouter, HTTPException, status, Depends
 from app.models.user import DatabaseUser, UserProfileUpdate, UserProfileResponse
 from app.dependencies import get_current_user
+from app.services import user_service
 from datetime import datetime
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
-# TODO: Add authentication dependency
-# async def get_current_user():
-#     pass
-
-@router.get("/profile", response_model=UserProfileResponse)
-async def get_user_profile(current_user: str = Depends(get_current_user)):
+@router.get("/profile", response_model=DatabaseUser)
+async def get_user_profile(current_user: int = Depends(get_current_user)):
     """
     Get current user's profile information
     """
-    user = UserService.get_user_profile(current_user)
+    user = user_service.UserService.get_user_by_id(current_user)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
-    return UserProfileResponse(user=user, message="Profile retrieved successfully")
+    return user
 
 @router.put("/profile", response_model=UserProfileResponse)
 async def update_user_profile(profile_update: UserProfileUpdate, current_user: str = Depends(get_current_user)):

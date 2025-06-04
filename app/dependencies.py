@@ -1,6 +1,7 @@
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from typing import Optional
+from app.services import jwt_service
 
 # Define the security scheme for Swagger UI
 security = HTTPBearer()
@@ -10,13 +11,6 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
     Dependency to get current authenticated user from JWT token
     This will show the lock icon in Swagger UI
     """
-    # TODO: Implement JWT token validation
-    # - Extract token from credentials.credentials
-    # - Validate JWT token
-    # - Extract user ID from token
-    # - Return user ID
-    
-    # For now, return a placeholder to show the authentication requirement
     if not credentials or not credentials.credentials:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -24,8 +18,25 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
             headers={"WWW-Authenticate": "Bearer"},
         )
     
-    # Placeholder return - replace with actual user ID from JWT
-    return "placeholder-user-id"
+    token = credentials.credentials
+
+    try:
+        payload = jwt_service.decode_jwt(token)
+        user_id = payload.get("user_id")
+        if user_id is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid token: user ID not found",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        return user_id
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"Invalid token: {str(e)}",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
 
 async def get_current_user_optional(credentials: Optional[HTTPAuthorizationCredentials] = Depends(HTTPBearer(auto_error=False))) -> Optional[str]:
     """

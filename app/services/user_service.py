@@ -10,7 +10,7 @@ class UserService:
     """
     
     @staticmethod
-    def get_user_profile(user_id: int):
+    def get_user_by_id(user_id: int):
         """
         Get user profile by ID
         """
