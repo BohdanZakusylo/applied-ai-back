@@ -3,11 +3,14 @@
 
 import os
 from typing import Optional
+from dotenv import load_dotenv
 
 class AIConfig:
     """
     Configuration for AI components
     """
+
+    load_dotenv();
     
     # OpenAI Configuration
     OPENAI_API_KEY: Optional[str] = os.getenv("OPENAI_API_KEY")

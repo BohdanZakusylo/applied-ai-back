@@ -1,5 +1,5 @@
-# ITH-94: Integrate trained ChatGPT with back-end
-# Complete RAG pipeline service
+# ITH-87 & ITH-89: Connect pinecone storage to ChatGPT environment
+# Complete RAG pipeline service - connects Pinecone retrieval with ChatGPT
 
 from typing import Dict
 from ..retrieval.retriever import RAGRetriever
