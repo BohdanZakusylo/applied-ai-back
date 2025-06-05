@@ -12,8 +12,12 @@ class DatabaseUser(BaseModel):
     medical_information: str
 
 class UserProfileUpdate(BaseModel):
-    first_name: Optional[str] = None
-    last_name: Optional[str] = None
+    name: Optional[str] = None
+    email: Optional[str] = None
+    password: Optional[str] = None
+    insurance_provider: Optional[str] = None
+    general_practitioner: Optional[str] = None
+    medical_information: Optional[str] = None
 
 class UserProfileResponse(BaseModel):
     user: DatabaseUser

@@ -74,7 +74,7 @@ class AuthService:
             session.close()
             raise
         except Exception as e:
-            session.rollback();
+            session.rollback()
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Internal error registering user."
