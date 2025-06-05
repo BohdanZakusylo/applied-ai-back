@@ -3,6 +3,9 @@
 
 from app.orm.engine import SessionLocal
 from app.orm.db_user import User
+from fastapi import HTTPException, status
+from email_validator import validate_email, EmailNotValidError
+from hashlib import sha256
 
 class UserService:
     """
@@ -18,18 +21,93 @@ class UserService:
         try:
           user = db.query(User).filter(User.id == user_id).first()
           if not user:
-            raise ValueError("User not found")
+            raise HTTPException(
+              status_code=404,
+              detail="User not found"
+              )
           return user
+        except HTTPException: 
+            # Re-raise HTTPExceptions so they reach the client with correct status codes
+            db.close()
+            raise
+        except Exception as e:
+            db.rollback()
+            print(e)
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Internal error getting user."
+            )
         finally:
           db.close()
     
     @staticmethod
-    async def update_user_profile(user_id: str, update_data: dict):
+    async def update_user_profile(user_id: str, email=None, password=None, insurance_provider=None, general_practitioner=None, medical_information=None):
         """
         Update user profile
-        TODO: Implement user profile update logic
         """
-        pass
+        db = SessionLocal()
+        try:
+            user = db.query(User).filter(User.id == user_id).first()
+            if not user:
+                raise HTTPException(
+                  status_code=404,
+                  detail="User not found"
+                  )
+
+            if email is not None:
+                try:
+                    email = validate_email(email).email
+                except EmailNotValidError:
+                    raise HTTPException(
+                        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                        detail="Invalid email address"
+                    )
+
+                existing = db.query(User).filter_by(email=email).first()
+                if existing and existing.id != user.id:
+                    raise HTTPException(
+                        status_code=status.HTTP_409_CONFLICT,
+                        detail="User with this email already exists."
+                    )
+                user.email = email
+
+            if password is not None:
+                if len(password) < 8:
+                    raise HTTPException(
+                        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                        detail="Password must be at least 8 characters long."
+                    )
+
+                hashed_password_sha256 = sha256(password.encode('utf-8')).hexdigest()
+                user.password = hashed_password_sha256
+
+            if insurance_provider is not None:
+                user.insurance_provider = insurance_provider
+
+            if general_practitioner is not None:
+                user.general_practitioner = general_practitioner
+
+            if medical_information is not None:
+                user.medical_information = medical_information
+
+            db.commit()
+            db.refresh(user)
+
+            return user
+
+        except HTTPException:
+            db.close()
+            raise
+
+        except Exception as e:
+            db.rollback()
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Internal error updating user."
+            )
+
+        finally:
+            db.close()
     
     @staticmethod
     async def delete_user_account(user_id: str):
