@@ -31,4 +31,5 @@ class ResetPassword(BaseModel):
 
 class AuthResponse(BaseModel):
     message: str
-    user_id: Optional[str] = None 
+    #we dont have it as of now
+    # user_id: Optional[str] = None 

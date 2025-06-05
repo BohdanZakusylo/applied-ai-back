@@ -1,5 +1,6 @@
 import datetime
 import jwt
+from jwt import ExpiredSignatureError, InvalidTokenError
 import os
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives import serialization
@@ -8,6 +9,7 @@ PRIVATE_KEY_PATH = "app/keys/private_key.pem"
 PUBLIC_KEY_PATH = "app/keys/public_key.pem"
 
 def ensure_keys_exist():
+    #TODO eyo wtf
     """Generate RSA keys if they don't exist"""
     if not os.path.exists(PRIVATE_KEY_PATH) or not os.path.exists(PUBLIC_KEY_PATH):
         print("🔑 Generating RSA keys for JWT...")
@@ -51,14 +53,28 @@ def create_jwt(user_id: int) -> str:
     return jwt.encode(payload, private_key, algorithm="RS256")
 
 def decode_jwt(token: str) -> dict:
-    _, public_key = load_keys()
-    payload = jwt.decode(token, public_key, algorithms=["RS256"])
+    try:
+        _, public_key = load_keys()
+        payload = jwt.decode(token, public_key, algorithms=["RS256"])
 
-    issue_time = datetime.datetime.fromisoformat(payload["issue_time"])
-    lifetime = datetime.timedelta(minutes=payload["lifetime_minutes"])
-    now = datetime.datetime.utcnow()
+        # Validate custom expiration manually
+        issue_time = datetime.datetime.fromisoformat(payload["issue_time"])
+        lifetime = datetime.timedelta(minutes=payload["lifetime_minutes"])
+        now = datetime.datetime.utcnow()
 
-    if now > issue_time + lifetime:
-        raise Exception("Token expired")
+        if now > issue_time + lifetime:
+            raise Exception("Token expired (manual check)")
 
-    return payload
+        return payload
+
+    except ExpiredSignatureError:
+        raise Exception("Token has expired")
+
+    except InvalidTokenError:
+        raise Exception("Invalid token")
+
+    except KeyError as e:
+        raise Exception(f"Missing claim in token")
+
+    except Exception as e:
+        raise Exception(f"Failed to decode token")

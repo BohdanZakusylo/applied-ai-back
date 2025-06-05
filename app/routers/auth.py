@@ -19,7 +19,7 @@ async def register(user_data: UserRegister):
     await authService.register_user(
         user_data.email, user_data.password, user_data.name, user_data.insurance_provider, user_data.general_practitioner, user_data.medical_information
     )
-    return AuthResponse(message="User registered successfully", user_id="placeholder-user-id")
+    return AuthResponse(message="User registered successfully")
 
 @router.post("/login", response_model=Token)
 async def login(credentials: UserLogin):
