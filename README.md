@@ -55,6 +55,9 @@ applied-ai-back/
    MAX_FILE_SIZE=10485760
    UPLOAD_DIR=uploads
    ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8080
+   PINECONE_API_KEY=pcsk_2roAa6_Kqu6s4oFbwGm3groixD5k1n6Pa6XafYVma4P1EYqqf6RfYPPzpRfDV8GQsR71sj 
+PINECONE_ENVIRONMENT=us-east-1
+PINECONE_INDEX_NAME=mediwayindex
    ```
 
 4. **Run the server:**
