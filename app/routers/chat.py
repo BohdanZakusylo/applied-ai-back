@@ -1,3 +1,5 @@
+import asyncio
+
 from fastapi import APIRouter, HTTPException, status, Depends
 from app.models.chat import (
     ChatMessage, 
@@ -9,9 +11,11 @@ from app.models.chat import (
 from app.dependencies import get_current_user
 from app.AI.integration.rag_service import RAGService
 from datetime import datetime
+from app.services.chat_service import ChatService
 
 router = APIRouter(prefix="/chat", tags=["Chat"])
 
+chatService = ChatService()
 # ITH-94: Integrate trained ChatpGPT with API
 rag_service = RAGService()
 
@@ -21,24 +25,38 @@ async def send_message(message: ChatMessage, current_user: str = Depends(get_cur
     Send message to AI assistant and get response
     ITH-94: Integrated with RAG pipeline for insurance-specific answers
     """
-    try:
-        # ITH-94: Process message through RAG pipeline
-        ai_response = rag_service.process_query(current_user, message.content)
+    
+    # try:
+    #     # ITH-94: Process message through RAG pipeline
+    #     ai_response = rag_service.process_query(current_user, message.content)
         
-        # TODO: Save conversation to database
+    #     # TODO: Save conversation to database
         
-        return ChatResponse(
-            response=ai_response.get("answer", "I'm sorry, I couldn't process your request."),
-            message_id=ai_response.get("message_id", "generated-id"),
-            timestamp=datetime.now()
-        )
-    except Exception as e:
-        # Fallback to placeholder if AI fails
-        return ChatResponse(
-            response=f"This is a placeholder response from the AI assistant regarding Dutch insurance matters for user {current_user}.",
-            message_id="placeholder-message-id", 
-            timestamp=datetime.now()
-        )
+    #     return ChatResponse(
+    #         response=ai_response.get("answer", "I'm sorry, I couldn't process your request."),
+    #         message_id=ai_response.get("message_id", "generated-id"),
+    #         timestamp=datetime.now()
+    #     )
+    # except Exception as e:
+    #     # Fallback to placeholder if AI fails
+    #     return ChatResponse(
+    #         response=f"This is a placeholder response from the AI assistant regarding Dutch insurance matters for user {current_user}.",
+    #         message_id="placeholder-message-id", 
+    #         timestamp=datetime.now()
+    #     )
+
+    if(current_user):
+        try:
+            #TODO communicate with chat gpt
+            await asyncio.sleep(3)
+        except Exception:
+            pass 
+        
+    return ChatResponse(
+        response=f"This is a placeholder response from the AI assistant regarding Dutch insurance matters for question {message.message}",
+        message_id="placeholder-message-id",
+        timestamp=datetime.now()
+    )
 
 @router.get("/history", response_model=ChatHistoryResponse)
 async def get_chat_history(current_user: str = Depends(get_current_user), limit: int = 50, offset: int = 0):
