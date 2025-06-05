@@ -27,7 +27,7 @@ async def send_message(message: ChatMessage, current_user: str = Depends(get_cur
             pass 
         
     return ChatResponse(
-        response=f"This is a placeholder response from the AI assistant regarding Dutch insurance matters for user {current_user}.",
+        response=f"This is a placeholder response from the AI assistant regarding Dutch insurance matters for question {message.message}",
         message_id="placeholder-message-id",
         timestamp=datetime.now()
     )
