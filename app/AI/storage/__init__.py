@@ -1,0 +1,1 @@
+# ITH-86: Create the pinecone storage 
