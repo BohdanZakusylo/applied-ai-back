@@ -35,7 +35,7 @@ class AuthService:
         except EmailNotValidError as e:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail=f"Invalid email address"
+                detail="Invalid email address"
             )
         
         if len(password) < 8:
@@ -75,7 +75,6 @@ class AuthService:
             raise
         except Exception as e:
             session.rollback();
-            print(e)
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Internal error registering user."
