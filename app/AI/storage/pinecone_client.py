@@ -5,6 +5,7 @@ import os
 from typing import Optional
 from pinecone import Pinecone
 from dotenv import load_dotenv 
+from ..config.ai_config import AIConfig
 
 class PineconeClient:
     """
@@ -28,8 +29,8 @@ class PineconeClient:
         """
         try:
             load_dotenv()
-            api_key = os.getenv("PINECONE_API_KEY")
-            self.index_name = os.getenv("PINECONE_INDEX_NAME")
+            api_key = AIConfig.PINECONE_API_KEY
+            self.index_name = AIConfig.PINECONE_INDEX_NAME
             
             if not api_key or not self.index_name:
                 print("Missing PINECONE_API_KEY or PINECONE_INDEX_NAME in environment")
