@@ -11,6 +11,7 @@ class ChatResponse(BaseModel):
     message_id: str
     timestamp: datetime
 
+# remove if unused
 class ConversationHistory(BaseModel):
     id: str
     user_message: str
@@ -20,6 +21,3 @@ class ConversationHistory(BaseModel):
 class ChatHistoryResponse(BaseModel):
     conversations: List[ConversationHistory]
     total_count: int
-
-class ChatStatusResponse(BaseModel):
-    message: str 

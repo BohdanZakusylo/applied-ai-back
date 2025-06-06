@@ -3,7 +3,6 @@ from app.models.auth import (
     UserRegister, 
     UserLogin, 
     Token, 
-    TokenRefresh, 
     ForgotPassword, 
     ResetPassword, 
     AuthResponse
@@ -38,20 +37,6 @@ async def login(credentials: UserLogin):
         access_token=access_token,
         token_type="bearer",
         expires_in=3600  # 1 hour
-    )
-
-@router.post("/refresh", response_model=Token)
-async def refresh_token(token_data: TokenRefresh):
-    """
-    Refresh an expired JWT token
-    """
-    # TODO: Implement token refresh logic
-    # - Validate refresh token
-    # - Generate new access token
-    return Token(
-        access_token="new-placeholder-jwt-token",
-        token_type="bearer",
-        expires_in=1800
     )
 
 @router.post("/logout", response_model=AuthResponse)

@@ -6,7 +6,6 @@ from app.models.chat import (
     ChatResponse, 
     ChatHistoryResponse, 
     ConversationHistory, 
-    ChatStatusResponse
 )
 from app.dependencies import get_current_user
 from app.AI.integration.rag_service import RAGService
@@ -86,14 +85,3 @@ async def get_chat_history(current_user: str = Depends(get_current_user), limit:
         conversations=mock_conversations,
         total_count=len(mock_conversations)
     )
-
-@router.delete("/history", response_model=ChatStatusResponse)
-async def clear_chat_history(current_user: str = Depends(get_current_user)):
-    """
-    Clear user's conversation history
-    """
-    # TODO: Implement clear history logic
-    # - Use current_user (user ID from JWT token)
-    # - Delete all conversations for user
-    # - Return success message
-    return ChatStatusResponse(message=f"Chat history cleared successfully for user {current_user}") 

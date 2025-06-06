@@ -265,11 +265,3 @@ class AuthService:
           return decode_jwt(token)
         except Exception as e:
           return {"error": str(e)}
-    
-    @staticmethod
-    async def send_password_reset_email(email: str):
-        """
-        Send password reset email
-        TODO: Implement password reset email functionality
-        """
-        pass 
