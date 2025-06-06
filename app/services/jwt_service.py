@@ -8,31 +8,7 @@ from cryptography.hazmat.primitives import serialization
 PRIVATE_KEY_PATH = "app/keys/private_key.pem"
 PUBLIC_KEY_PATH = "app/keys/public_key.pem"
 
-def ensure_keys_exist():
-    #TODO eyo wtf
-    """Generate RSA keys if they don't exist"""
-    if not os.path.exists(PRIVATE_KEY_PATH) or not os.path.exists(PUBLIC_KEY_PATH):
-        print("🔑 Generating RSA keys for JWT...")
-        os.makedirs("app/keys", exist_ok=True)
-        
-        private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
-        with open(PRIVATE_KEY_PATH, "wb") as f:
-            f.write(private_key.private_bytes(
-                serialization.Encoding.PEM,
-                serialization.PrivateFormat.TraditionalOpenSSL,
-                encryption_algorithm=serialization.NoEncryption()
-            ))
-
-        public_key = private_key.public_key()
-        with open(PUBLIC_KEY_PATH, "wb") as f:
-            f.write(public_key.public_bytes(
-                serialization.Encoding.PEM,
-                serialization.PublicFormat.SubjectPublicKeyInfo
-            ))
-        print("✅ RSA key pair generated at app/keys/")
-
 def load_keys():
-    ensure_keys_exist()  # Generate keys if they don't exist
     with open(PRIVATE_KEY_PATH, "rb") as f:
         private_key = f.read()
     with open(PUBLIC_KEY_PATH, "rb") as f:

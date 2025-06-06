@@ -52,13 +52,3 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
             session.close()
 
         return user_id
-
-async def get_current_user_optional(credentials: Optional[HTTPAuthorizationCredentials] = Depends(HTTPBearer(auto_error=False))) -> Optional[str]:
-    """
-    Optional authentication dependency for endpoints that work with or without auth
-    """
-    if not credentials:
-        return None
-    
-    # TODO: Implement optional JWT validation
-    return "placeholder-user-id" 
