@@ -1,5 +1,6 @@
 import time
 import os
+import bleach
 
 from openai import OpenAI
 from fastapi import APIRouter, HTTPException, status, Depends
@@ -34,10 +35,16 @@ async def send_message(user_message: ChatMessage, current_user: str = Depends(ge
             client = OpenAI(api_key=API_KEY)
 
             empty_thread = client.beta.threads.create()
+            sanitized_user_message = bleach.clean(
+                user_message.message,
+                tags=[],
+                attributes={},
+                strip=True
+            )
             thread_message = client.beta.threads.messages.create(
                 empty_thread.id,
                 role="user",
-                content=user_message.message,
+                content=sanitized_user_message,
             )
 
             run = client.beta.threads.runs.create(
@@ -64,9 +71,16 @@ async def send_message(user_message: ChatMessage, current_user: str = Depends(ge
 
         except Exception as ex:
             print(ex)
+    
+    sanitized_text = bleach.clean(
+        ready_message.content[0].text.value,
+        tags=[],
+        attributes={},
+        strip=True
+    )
         
     return ChatResponse(
-        response=ready_message.content[0].text.value,
+        response=sanitized_text,
         message_id="placeholder-message-id",
         timestamp=datetime.now()
     )
