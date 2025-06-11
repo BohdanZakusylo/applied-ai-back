@@ -4,6 +4,7 @@ from typing import Optional
 from app.services.jwt_service import decode_jwt
 from app.orm.engine import SessionLocal
 from app.orm.db_user import User
+from app.orm.db_token import Token
 
 # Define the security scheme for Swagger UI
 security = HTTPBearer()
@@ -43,7 +44,7 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
             )
         except Exception as e:
             print(e)
-            session.rollback();
+            session.rollback()
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Internal error"

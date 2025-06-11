@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException, status, Depends
+from fastapi.security import HTTPAuthorizationCredentials
 from app.models.auth import (
     UserRegister, 
     UserLogin, 
@@ -7,14 +8,14 @@ from app.models.auth import (
     ResetPassword, 
     AuthResponse
 )
-from app.dependencies import get_current_user
+from app.dependencies import get_current_user, security
 from app.services.auth_service import AuthService
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 @router.post("/register", response_model=AuthResponse, status_code=status.HTTP_201_CREATED)
 async def register(user_data: UserRegister):
-    authService = AuthService();
+    authService = AuthService()
     await authService.register_user(
         user_data.email, user_data.password, user_data.name, user_data.insurance_provider, user_data.general_practitioner, user_data.medical_information
     )
@@ -40,13 +41,18 @@ async def login(credentials: UserLogin):
     )
 
 @router.post("/logout", response_model=AuthResponse)
-async def logout(current_user: str = Depends(get_current_user)):
+async def logout(current_user: str = Depends(get_current_user), credentials: HTTPAuthorizationCredentials = Depends(security)):
     """
     Logout user and invalidate token
     """
-    # TODO: Implement logout logic
-    # - Add token to blacklist
-    # - Clear any server-side session data
+    from app.services.jwt_service import invalidate_token
+    
+    # Get the token from the request
+    token = credentials.credentials
+    
+    # Invalidate the token
+    invalidate_token(token)
+    
     return AuthResponse(message=f"User {current_user} logged out successfully")
 
 @router.post("/forgot-password", response_model=AuthResponse)
