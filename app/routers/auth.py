@@ -32,6 +32,9 @@ async def login(credentials: UserLogin):
     
     # Generate JWT access token
     access_token = await authService.create_access_token(user.id)
+
+    #write token in tthe database
+    authService.update_user_token(user_id=user.id, new_token=access_token)
     
     return Token(
         access_token=access_token,
@@ -41,13 +44,10 @@ async def login(credentials: UserLogin):
 
 @router.post("/logout", response_model=AuthResponse)
 async def logout(current_user: str = Depends(get_current_user)):
-    """
-    Logout user and invalidate token
-    """
-    # TODO: Implement logout logic
-    # - Add token to blacklist
-    # - Clear any server-side session data
-    return AuthResponse(message=f"User {current_user} logged out successfully")
+    if(current_user):
+        authService = AuthService()
+        await authService.logout(current_user)
+    return AuthResponse(message=f"User logged out successfully")
 
 @router.post("/forgot-password", response_model=AuthResponse)
 async def forgot_password(email_data: ForgotPassword):

@@ -29,12 +29,17 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
 
         session = SessionLocal()
         try:
-            existing = session.query(User).filter_by(id=user_id).first()
-            if not existing:
+            existing_and_valid_token = session.query(User).filter(
+                User.id == user_id,
+                User.token == credentials.credentials
+            ).first()
+
+            if not existing_and_valid_token:
                 raise HTTPException(
                     status_code=status.HTTP_409_CONFLICT,
                     detail="There is no such user"
                 )
+
         except HTTPException:
             session.close()
             raise HTTPException(
