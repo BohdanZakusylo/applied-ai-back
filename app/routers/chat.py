@@ -1,5 +1,8 @@
-import asyncio
+import time
+import os
+import bleach
 
+from openai import OpenAI
 from fastapi import APIRouter, HTTPException, status, Depends
 from app.models.chat import (
     ChatMessage, 
@@ -10,6 +13,7 @@ from app.models.chat import (
 from app.dependencies import get_current_user
 from app.AI.integration.rag_service import RAGService
 from datetime import datetime
+from dotenv import load_dotenv
 from app.services.chat_service import ChatService
 
 router = APIRouter(prefix="/chat", tags=["Chat"])
@@ -18,41 +22,65 @@ chatService = ChatService()
 # ITH-94: Integrate trained ChatpGPT with API
 rag_service = RAGService()
 
-@router.post("/message", response_model=ChatResponse)
-async def send_message(message: ChatMessage, current_user: str = Depends(get_current_user)):
-    """
-    Send message to AI assistant and get response
-    ITH-94: Integrated with RAG pipeline for insurance-specific answers
-    """
-    
-    # try:
-    #     # ITH-94: Process message through RAG pipeline
-    #     ai_response = rag_service.process_query(current_user, message.content)
-        
-    #     # TODO: Save conversation to database
-        
-    #     return ChatResponse(
-    #         response=ai_response.get("answer", "I'm sorry, I couldn't process your request."),
-    #         message_id=ai_response.get("message_id", "generated-id"),
-    #         timestamp=datetime.now()
-    #     )
-    # except Exception as e:
-    #     # Fallback to placeholder if AI fails
-    #     return ChatResponse(
-    #         response=f"This is a placeholder response from the AI assistant regarding Dutch insurance matters for user {current_user}.",
-    #         message_id="placeholder-message-id", 
-    #         timestamp=datetime.now()
-    #     )
+load_dotenv();
 
+@router.post("/message", response_model=ChatResponse)
+async def send_message(user_message: ChatMessage, current_user: str = Depends(get_current_user)):
     if(current_user):
+        API_KEY = os.getenv("GPT_API_KEY")
+        ASS_ID = os.getenv("ASS_ID")
+
+        ready_message = None
         try:
-            #TODO communicate with chat gpt
-            await asyncio.sleep(3)
-        except Exception:
-            pass 
+            client = OpenAI(api_key=API_KEY)
+
+            empty_thread = client.beta.threads.create()
+            sanitized_user_message = bleach.clean(
+                user_message.message,
+                tags=[],
+                attributes={},
+                strip=True
+            )
+            thread_message = client.beta.threads.messages.create(
+                empty_thread.id,
+                role="user",
+                content=sanitized_user_message,
+            )
+
+            run = client.beta.threads.runs.create(
+            thread_id=empty_thread.id,
+            assistant_id=ASS_ID
+            )
+
+            while True:
+                run_status = client.beta.threads.runs.retrieve(
+                    thread_id=empty_thread.id,
+                    run_id=run.id
+                )
+                if run_status.status == "completed":
+                    break
+                elif run_status.status == "failed":
+                    raise Exception("Run failed.")
+                time.sleep(1)
+
+            gpt_messages = client.beta.threads.messages.list(thread_id=empty_thread.id)
+
+            for message in gpt_messages.data:
+                if message.role == "assistant":
+                    ready_message = message
+
+        except Exception as ex:
+            print(ex)
+    
+    sanitized_text = bleach.clean(
+        ready_message.content[0].text.value,
+        tags=[],
+        attributes={},
+        strip=True
+    )
         
     return ChatResponse(
-        response=f"This is a placeholder response from the AI assistant regarding Dutch insurance matters for question {message.message}",
+        response=sanitized_text,
         message_id="placeholder-message-id",
         timestamp=datetime.now()
     )
