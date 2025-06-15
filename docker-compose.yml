@@ -26,6 +26,7 @@ services:
       - "8000:8000"
     volumes:
       - ./app:/fastapi/app
+      - ./testing:/fastapi/testing
     image: fastapi-app:dev
     restart: unless-stopped
     depends_on:
