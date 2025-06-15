@@ -1,9 +1,12 @@
 name: Run fastapi endpoints tests
 
 on: 
+  pull_request:
+    branches:
+      - development
   push:
     branches:
-      - testing-endpoints-pipeline
+      - development
 
 jobs:
   test:
