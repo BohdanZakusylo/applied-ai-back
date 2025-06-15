@@ -1,0 +1,23 @@
+name: Run fastapi endpoints tests
+
+on: 
+  pull_request:
+    branches:
+      - develop
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker compose up --build -d
+
+      - name: Run container
+        run: docker exec fastapi-app python -m pytest testing/ -v -p no:warnings
+      
+      - name: Shutdown Docker containers
+        run: docker compose down
