@@ -15,6 +15,7 @@ class UserProfileUpdate(BaseModel):
     name: Optional[str] = None
     email: Optional[str] = None
     password: Optional[str] = None
+    token: Optional[str] = None
     insurance_provider: Optional[str] = None
     general_practitioner: Optional[str] = None
     medical_information: Optional[str] = None

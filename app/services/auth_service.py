@@ -81,6 +81,25 @@ class AuthService:
             )
         finally:
             session.close()
+
+    @staticmethod
+    async def logout(user_id: str):
+        session = SessionLocal()
+
+        try:
+            result = session.query(User).filter(User.id == user_id).update(
+                {User.token: None},
+                synchronize_session=False
+            )
+            session.commit()
+            
+        except Exception as e:
+            session.rollback()
+            print(f"An error occured, pleae try again")
+
+        finally:
+            session.close()
+            
     
     @staticmethod
     async def request_password_reset(email: str):
@@ -265,3 +284,20 @@ class AuthService:
           return decode_jwt(token)
         except Exception as e:
           return {"error": str(e)}
+        
+    @staticmethod
+    def update_user_token(user_id: int, new_token: str):
+        session = SessionLocal()
+        try:
+            result = session.query(User).filter(User.id == user_id).update(
+                {User.token: new_token},
+                synchronize_session=False
+            )
+            session.commit()
+
+        except Exception as e:
+            session.rollback()
+            print(f"An error occured, pleae try again")
+
+        finally:
+            session.close()
