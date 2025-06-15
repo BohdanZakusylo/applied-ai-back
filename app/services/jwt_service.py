@@ -5,7 +5,7 @@ import os
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives import serialization
 from app.orm.engine import SessionLocal
-from app.orm.db_token import Token
+from app.orm.db_user import User
 
 PRIVATE_KEY_PATH = "app/keys/private_key.pem"
 PUBLIC_KEY_PATH = "app/keys/public_key.pem"
@@ -26,29 +26,20 @@ def create_jwt(user_id: int) -> str:
     payload = {
         "user_id": user_id,
         "issue_time": issue_time.isoformat(),
-        "lifetime_minutes": lifetime.total_seconds() / 60
+        "lifetime_minutes": lifetime.total_seconds() / 60,
+        "expires_at": expiry_time.isoformat()
     }
 
     token = jwt.encode(payload, private_key, algorithm="RS256")
     
-    # Store token in database
+    # Store token in user record
     session = SessionLocal()
     try:
-        # Invalidate previous tokens for this user
-        session.query(Token).filter(
-            Token.user_id == user_id,
-            Token.is_active == True
-        ).update({"is_active": False})
-        
-        # Create new token record
-        db_token = Token(
-            user_id=user_id,
-            token=token,
-            is_active=True,
-            expires_at=expiry_time
-        )
-        session.add(db_token)
-        session.commit()
+        # Update user record with new token
+        user = session.query(User).filter(User.id == user_id).first()
+        if user:
+            user.token = token
+            session.commit()
     except Exception as e:
         session.rollback()
         raise e
@@ -59,39 +50,29 @@ def create_jwt(user_id: int) -> str:
 
 def decode_jwt(token: str) -> dict:
     try:
-        # First check if token is in database and active
-        session = SessionLocal()
-        db_token = session.query(Token).filter(
-            Token.token == token,
-            Token.is_active == True
-        ).first()
-        
-        if not db_token:
-            session.close()
-            raise Exception("Token not found or inactive")
-        
-        # Check if token has expired in database
-        now = datetime.datetime.utcnow()
-        if now > db_token.expires_at:
-            # Mark token as inactive
-            db_token.is_active = False
-            session.commit()
-            session.close()
-            raise Exception("Token expired")
-        
-        # Verify token signature
+        # Verify token signature first
         _, public_key = load_keys()
         payload = jwt.decode(token, public_key, algorithms=["RS256"])
-
-        # Validate custom expiration manually
+        
+        # Get user and verify token matches the one stored
+        user_id = payload["user_id"]
+        session = SessionLocal()
+        user = session.query(User).filter(User.id == user_id).first()
+        
+        if not user or user.token != token:
+            session.close()
+            raise Exception("Invalid token or token has been revoked")
+        
+        # Validate expiration
+        now = datetime.datetime.utcnow()
         issue_time = datetime.datetime.fromisoformat(payload["issue_time"])
         lifetime = datetime.timedelta(minutes=payload["lifetime_minutes"])
+        
         if now > issue_time + lifetime:
-            # Mark token as inactive
-            db_token.is_active = False
-            session.commit()
+            # Token is expired - could clear it from the user record
+            # but we'll leave that for the logout functionality
             session.close()
-            raise Exception("Token expired (manual check)")
+            raise Exception("Token expired")
             
         session.close()
         return payload
@@ -109,23 +90,34 @@ def decode_jwt(token: str) -> dict:
         raise Exception(f"Failed to decode token: {str(e)}")
 
 def invalidate_token(token: str) -> bool:
-    """Invalidate a specific token"""
-    session = SessionLocal()
+    """Invalidate a specific token by setting the user's token to None"""
     try:
-        db_token = session.query(Token).filter(
-            Token.token == token,
-            Token.is_active == True
-        ).first()
+        # Verify token signature first to get the user_id
+        _, public_key = load_keys()
+        payload = jwt.decode(token, public_key, algorithms=["RS256"])
         
-        if db_token:
-            db_token.is_active = False
-            session.commit()
-            session.close()
-            return True
-        else:
+        user_id = payload.get("user_id")
+        if not user_id:
+            return False
+            
+        # Find the user and clear their token
+        session = SessionLocal()
+        try:
+            user = session.query(User).filter(User.id == user_id).first()
+            
+            # Only clear if this is the current token
+            if user and user.token == token:
+                user.token = None
+                session.commit()
+                session.close()
+                return True
+            else:
+                session.close()
+                return False
+        except Exception as e:
+            session.rollback()
             session.close()
             return False
-    except Exception as e:
-        session.rollback()
-        session.close()
+    except Exception:
+        # If token can't be decoded, just return False
         return False

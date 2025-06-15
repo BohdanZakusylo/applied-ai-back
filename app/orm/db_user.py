@@ -11,6 +11,7 @@ class User(Base):
     name: Mapped[str] = mapped_column(String(30))
     email: Mapped[str] = mapped_column(String(30))
     password: Mapped[str] = mapped_column(String(256))
+    token: Mapped[Optional[str]] = mapped_column(String(500))
     insurance_provider: Mapped[Optional[str]] = mapped_column(String(30))
     general_practitioner: Mapped[Optional[str]] = mapped_column(String(30))
     medical_information: Mapped[Optional[str]] = mapped_column(String(30))
