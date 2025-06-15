@@ -1,6 +1,7 @@
 from fastapi import APIRouter, status
 from app.orm.feedback import Feedback
-from app.services import FeedbackService
+from app.models.feedback import FeedbackCreate
+from app.services.feedback_service import FeedbackService
 
 router = APIRouter()
 
