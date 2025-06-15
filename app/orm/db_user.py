@@ -1,7 +1,7 @@
 from .base import Base
 
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy import String
+from sqlalchemy import String, Text
 from typing import Optional
 
 class User(Base):
@@ -11,7 +11,7 @@ class User(Base):
     name: Mapped[str] = mapped_column(String(30))
     email: Mapped[str] = mapped_column(String(30))
     password: Mapped[str] = mapped_column(String(256))
-    token: Mapped[Optional[str]] = mapped_column(String(500))
+    token: Mapped[Optional[str]] = mapped_column(Text)
     insurance_provider: Mapped[Optional[str]] = mapped_column(String(30))
     general_practitioner: Mapped[Optional[str]] = mapped_column(String(30))
     medical_information: Mapped[Optional[str]] = mapped_column(String(30))
