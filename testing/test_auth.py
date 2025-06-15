@@ -6,15 +6,14 @@ client = TestClient(app)
 
 def generate_random_email():
     words = ["apple", "blue", "cloud", "delta", "echo", "fox", "green", "honey", "iris", "jazz", "kite", "lava", "mint", "nova", "opal", "pink", "quiz", "rose", "star", "tree"]
-    random_words = "-".join(random.sample(words, 4))
+    random_words = "".join(random.sample(words, 4))
     return f"{random_words}@gmail.com"
 
 def test_register_user_status_only():
-    email = generate_random_email()
     user_data = {
-        "email": email,
-        "password": "testpassword123",
-        "name": "Test User",
+        "email": generate_random_email(),
+        "name": "I am test",
+        "password": "testpassword123new",
         "insurance_provider": "Test Insurance",
         "general_practitioner": "Dr. Test",
         "medical_information": "No known allergies"
