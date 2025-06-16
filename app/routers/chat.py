@@ -15,7 +15,7 @@ from app.AI.integration.rag_service import RAGService
 from datetime import datetime
 from dotenv import load_dotenv
 from app.services.chat_service import ChatService
-from app.services.user_service import UserService
+from app.services.user_service import UserService, MONTHLY_QUESTION_LIMIT
 
 router = APIRouter(prefix="/chat", tags=["Chat"])
 
@@ -28,6 +28,13 @@ load_dotenv();
 @router.post("/message", response_model=ChatResponse)
 async def send_message(user_message: ChatMessage, current_user: str = Depends(get_current_user)):
     if(current_user):
+        # Check monthly question limit before processing
+        if not UserService.check_and_increment_monthly_questions(int(current_user)):
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail=f"Monthly question limit of {MONTHLY_QUESTION_LIMIT} questions exceeded. Please try again next month."
+            )
+        
         API_KEY = os.getenv("GPT_API_KEY")
         ASS_ID = os.getenv("ASS_ID")
 
@@ -117,6 +124,14 @@ async def send_message(user_message: ChatMessage, current_user: str = Depends(ge
         message_id="placeholder-message-id",
         timestamp=datetime.now()
     )
+
+@router.get("/questions-remaining")
+async def get_questions_remaining(current_user: str = Depends(get_current_user)):
+    """
+    Get the number of questions remaining for the current month
+    """
+    remaining = UserService.get_monthly_questions_remaining(int(current_user))
+    return {"questions_remaining": remaining, "monthly_limit": MONTHLY_QUESTION_LIMIT}
 
 @router.get("/history", response_model=ChatHistoryResponse)
 async def get_chat_history(current_user: str = Depends(get_current_user), limit: int = 50, offset: int = 0):
