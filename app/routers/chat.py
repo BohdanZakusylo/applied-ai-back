@@ -15,6 +15,7 @@ from app.AI.integration.rag_service import RAGService
 from datetime import datetime
 from dotenv import load_dotenv
 from app.services.chat_service import ChatService
+from app.services.user_service import UserService
 
 router = APIRouter(prefix="/chat", tags=["Chat"])
 
@@ -30,13 +31,26 @@ async def send_message(user_message: ChatMessage, current_user: str = Depends(ge
         API_KEY = os.getenv("GPT_API_KEY")
         ASS_ID = os.getenv("ASS_ID")
 
+        # Check if required environment variables are set
+        if not API_KEY or not ASS_ID:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="AI service not properly configured"
+            )
+
         ready_message = None
         try:
+            # Fetch user profile for context
+            user_profile = UserService.get_user_by_id(int(current_user))
+            
+            # Build enhanced prompt with user context
+            prompt = ChatService.build_user_context_prompt(user_profile, user_message.message)
+            
             client = OpenAI(api_key=API_KEY)
 
             empty_thread = client.beta.threads.create()
-            sanitized_user_message = bleach.clean(
-                user_message.message,
+            sanitized_prompt = bleach.clean(
+                prompt,
                 tags=[],
                 attributes={},
                 strip=True
@@ -44,7 +58,7 @@ async def send_message(user_message: ChatMessage, current_user: str = Depends(ge
             thread_message = client.beta.threads.messages.create(
                 empty_thread.id,
                 role="user",
-                content=sanitized_user_message,
+                content=sanitized_prompt,
             )
 
             run = client.beta.threads.runs.create(
@@ -60,7 +74,7 @@ async def send_message(user_message: ChatMessage, current_user: str = Depends(ge
                 if run_status.status == "completed":
                     break
                 elif run_status.status == "failed":
-                    raise Exception("Run failed.")
+                    raise Exception("OpenAI assistant run failed")
                 time.sleep(1)
 
             gpt_messages = client.beta.threads.messages.list(thread_id=empty_thread.id)
@@ -68,9 +82,28 @@ async def send_message(user_message: ChatMessage, current_user: str = Depends(ge
             for message in gpt_messages.data:
                 if message.role == "assistant":
                     ready_message = message
+                    break
 
         except Exception as ex:
-            print(ex)
+            print(f"Error in chat processing: {ex}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Error processing chat message: {str(ex)}"
+            )
+    
+    # Check if we got a valid response
+    if ready_message is None:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="No response generated from AI"
+        )
+
+    # Check if the message has content
+    if not ready_message.content or len(ready_message.content) == 0:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Empty response from AI"
+        )
     
     sanitized_text = bleach.clean(
         ready_message.content[0].text.value,
