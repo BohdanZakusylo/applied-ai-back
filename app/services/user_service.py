@@ -6,6 +6,10 @@ from app.orm.db_user import User
 from fastapi import HTTPException, status
 from email_validator import validate_email, EmailNotValidError
 from hashlib import sha256
+from datetime import datetime
+
+# Configuration
+MONTHLY_QUESTION_LIMIT = 100
 
 class UserService:
     """
@@ -123,4 +127,84 @@ class UserService:
         Check if user exists by email
         TODO: Implement user existence check
         """
-        pass 
+        pass
+    
+    @staticmethod
+    def check_and_increment_monthly_questions(user_id: int):
+        """
+        Check if user has remaining questions for the month and increment count if allowed
+        Returns True if question is allowed, False if limit exceeded
+        """
+        db = SessionLocal()
+        try:
+            user = db.query(User).filter(User.id == user_id).first()
+            if not user:
+                raise HTTPException(
+                    status_code=404,
+                    detail="User not found"
+                )
+            
+            current_month_year = datetime.now().strftime("%Y-%m")
+            
+            # Reset count if it's a new month
+            if user.current_month_year != current_month_year:
+                user.monthly_questions_used = 0
+                user.current_month_year = current_month_year
+            
+            # Check if user has exceeded the monthly limit
+            if user.monthly_questions_used >= MONTHLY_QUESTION_LIMIT:
+                return False
+            
+            # Increment the count
+            user.monthly_questions_used += 1
+            db.commit()
+            
+            return True
+            
+        except HTTPException:
+            db.close()
+            raise
+        except Exception as e:
+            db.rollback()
+            print(f"Error checking monthly questions: {e}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Internal error checking question limit."
+            )
+        finally:
+            db.close()
+    
+    @staticmethod
+    def get_monthly_questions_remaining(user_id: int):
+        """
+        Get the number of questions remaining for the month
+        """
+        db = SessionLocal()
+        try:
+            user = db.query(User).filter(User.id == user_id).first()
+            if not user:
+                raise HTTPException(
+                    status_code=404,
+                    detail="User not found"
+                )
+            
+            current_month_year = datetime.now().strftime("%Y-%m")
+            
+            # Reset count if it's a new month
+            if user.current_month_year != current_month_year:
+                return MONTHLY_QUESTION_LIMIT
+            
+            return max(0, MONTHLY_QUESTION_LIMIT - user.monthly_questions_used)
+            
+        except HTTPException:
+            db.close()
+            raise
+        except Exception as e:
+            db.rollback()
+            print(f"Error getting monthly questions remaining: {e}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Internal error getting question limit."
+            )
+        finally:
+            db.close() 
