@@ -17,16 +17,16 @@ class DeadlineUpdate(BaseModel):
     due_date: Optional[datetime] = None
 
 
-class DeadlineResponse(DeadlineBase):
+class Deadline(DeadlineBase):
     id: int
     user_id: int
     created_at: datetime
     updated_at: Optional[datetime] = None
-
+    
     class Config:
         orm_mode = True
 
 
-class DeadlineListResponse(BaseModel):
-    items: List[DeadlineResponse]
+class DeadlineList(BaseModel):
+    items: List[Deadline]
     total: int

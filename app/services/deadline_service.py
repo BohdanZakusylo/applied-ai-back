@@ -98,13 +98,18 @@ class DeadlineService:
                 return None
                 
             # Update only the fields that were provided
-            if deadline_data.title is not None:
+            updated = False
+            if deadline_data.title:
                 deadline.title = deadline_data.title
+                updated = True
                 
-            if deadline_data.due_date is not None:
+            if deadline_data.due_date:
                 deadline.due_date = deadline_data.due_date
+                updated = True
                 
-            deadline.updated_at = datetime.utcnow()
+            # Set updated_at if changes were made
+            if updated:
+                deadline.updated_at = datetime.utcnow()
             
             db.commit()
             db.refresh(deadline)
