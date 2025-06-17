@@ -5,6 +5,7 @@ from contextlib import asynccontextmanager
 from app.orm.base import Base
 from app.orm.engine import engine
 from app.orm.db_user import User
+from app.orm.deadline import Deadline
 
 
 # Create FastAPI app instance
