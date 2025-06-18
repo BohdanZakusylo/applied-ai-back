@@ -7,9 +7,6 @@ import os
 
 load_dotenv();
 
-POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD")
-POSTGRES_USER = os.getenv("POSTGRES_USER")
-POSTGRES_DB = os.getenv("POSTGRES_DB")
 PGURL = os.getenv("PGURL")
 
 engine = create_engine(PGURL);
