@@ -2,11 +2,11 @@ FROM python:3.11-slim
 
 WORKDIR /fastapi
 
-COPY ../requirements.txt .
+COPY ./requirements.txt .
 
-RUN pip install --no-cache-dir -r ../requirements.txt
+RUN pip install --no-cache-dir -r ./requirements.txt
 
-COPY ../app /fastapi/app
+COPY ./app /fastapi/app
 
 EXPOSE 8000
 
