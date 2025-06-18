@@ -390,5 +390,6 @@ $RECYCLE.BIN/
 *.lnk
 
 app/keys/
+etc/
 
 # End of https://www.toptal.com/developers/gitignore/api/python,macos,venv,jetbrains+all,jetbrains+iml,windows
