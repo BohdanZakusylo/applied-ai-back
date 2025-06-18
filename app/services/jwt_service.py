@@ -7,8 +7,8 @@ from cryptography.hazmat.primitives import serialization
 from app.orm.engine import SessionLocal
 from app.orm.db_user import User
 
-PRIVATE_KEY_PATH = "etc/secrets/private_key.pem"
-PUBLIC_KEY_PATH = "etc/secrets/public_key.pem"
+PRIVATE_KEY_PATH = "/etc/secrets/private_key.pem"
+PUBLIC_KEY_PATH = "/etc/secrets/public_key.pem"
 
 def load_keys():
     with open(PRIVATE_KEY_PATH, "rb") as f:

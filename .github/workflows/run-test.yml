@@ -27,8 +27,8 @@ jobs:
       - name: "Create private and public keys"
         run: |
           mkdir -p app/keys
-          echo "${{ secrets.PUB_KEY }}" > app/keys/public_key.pem
-          echo "${{ secrets.PRVT_KEY }}" > app/keys/private_key.pem
+          echo "${{ secrets.PUB_KEY }}" > etc/secrets/public_key.pem
+          echo "${{ secrets.PRVT_KEY }}" > etc/secrets/private_key.pem
 
       - name: Build Docker image
         run: docker compose up --build -d
