@@ -23,10 +23,11 @@ jobs:
           echo "POSTGRES_DB=testPostgres" >> .env
           echo "GPT_API_KEY=${{ secrets.GPT_API_KEY }}" >> .env
           echo "ASS_ID=${{ secrets.ASS_ID }}" >> .env  
+          echo "PGURL=${{ secrets.PGURL }}" >> .env  
 
       - name: "Create private and public keys"
         run: |
-          mkdir -p app/keys
+          mkdir -p etc/secrets
           echo "${{ secrets.PUB_KEY }}" > etc/secrets/public_key.pem
           echo "${{ secrets.PRVT_KEY }}" > etc/secrets/private_key.pem
 
