@@ -18,15 +18,18 @@ jobs:
 
       - name: "Create .env file"
         run: |
-          echo "POSTGRES_USER=testUser" >> .env
-          echo "POSTGRES_PASSWORD=testPassword" >> .env
-          echo "POSTGRES_DB=testPostgres" >> .env
+          echo "POSTGRES_USER=postgres" >> .env
+          echo "POSTGRES_PASSWORD=postgres" >> .env
+          echo "POSTGRES_DB=postgres" >> .env
           echo "GPT_API_KEY=${{ secrets.GPT_API_KEY }}" >> .env
           echo "ASS_ID=${{ secrets.ASS_ID }}" >> .env  
+          echo "PGURL=${{ secrets.PGURL }}" >> .env  
+          echo "PUBLIC_KEY_PATH=${{ secrets.PUBLIC_KEY_PATH }}" >> .env  
+          echo "PRIVATE_KEY_PATH=${{ secrets.PRIVATE_KEY_PATH }}" >> .env  
 
-      - name: "Create private and public keys"
+      - name: "Create private and public key folders"
         run: |
-          mkdir -p app/keys
+          mkdir -p app/keys/
           echo "${{ secrets.PUB_KEY }}" > app/keys/public_key.pem
           echo "${{ secrets.PRVT_KEY }}" > app/keys/private_key.pem
 

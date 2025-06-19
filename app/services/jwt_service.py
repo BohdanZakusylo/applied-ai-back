@@ -1,14 +1,18 @@
 import datetime
 import jwt
-from jwt import ExpiredSignatureError, InvalidTokenError
 import os
+
+from jwt import ExpiredSignatureError, InvalidTokenError
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives import serialization
 from app.orm.engine import SessionLocal
 from app.orm.db_user import User
+from dotenv import load_dotenv
 
-PRIVATE_KEY_PATH = "app/keys/private_key.pem"
-PUBLIC_KEY_PATH = "app/keys/public_key.pem"
+load_dotenv()
+
+PRIVATE_KEY_PATH = os.getenv("PRIVATE_KEY_PATH")
+PUBLIC_KEY_PATH = os.getenv("PUBLIC_KEY_PATH")
 
 def load_keys():
     with open(PRIVATE_KEY_PATH, "rb") as f:
