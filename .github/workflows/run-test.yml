@@ -24,12 +24,14 @@ jobs:
           echo "GPT_API_KEY=${{ secrets.GPT_API_KEY }}" >> .env
           echo "ASS_ID=${{ secrets.ASS_ID }}" >> .env  
           echo "PGURL=${{ secrets.PGURL }}" >> .env  
+          echo "PUBLIC_KEY_PATH=${{ secrets.PUBLIC_KEY_PATH }}" >> .env  
+          echo "PRIVATE_KEY_PATH=${{ secrets.PRIVATE_KEY_PATH }}" >> .env  
 
       - name: "Create private and public keys"
         run: |
-          mkdir -p /etc/secrets
-          echo "${{ secrets.PUB_KEY }}" > /etc/secrets/public_key.pem
-          echo "${{ secrets.PRVT_KEY }}" > /etc/secrets/private_key.pem
+          mkdir -p /tmp/secrets
+          echo "${{ secrets.PUB_KEY }}" > /tmp/secrets/public_key.pem
+          echo "${{ secrets.PRVT_KEY }}" > /tmp/secrets/private_key.pem
 
       - name: Build Docker image
         run: docker compose up --build -d
