@@ -1,10 +1,10 @@
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List
 from datetime import datetime
 
 class ChatMessage(BaseModel):
     message: str
-    context: Optional[dict] = None
+    chat_name: str
 
 class ChatResponse(BaseModel):
     response: str
@@ -21,3 +21,6 @@ class ConversationHistory(BaseModel):
 class ChatHistoryResponse(BaseModel):
     conversations: List[ConversationHistory]
     total_count: int
+
+class NewCratedChatResponse(BaseModel):
+    response: str

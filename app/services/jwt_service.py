@@ -6,7 +6,7 @@ from jwt import ExpiredSignatureError, InvalidTokenError
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives import serialization
 from app.orm.engine import SessionLocal
-from app.orm.db_user import User
+from app.orm.models.db_user import User
 from dotenv import load_dotenv
 
 load_dotenv()
