@@ -112,11 +112,13 @@ async def send_message(user_message: ChatMessage, current_user: str = Depends(ge
             detail="Empty response from AI"
         )
     
+    # Preserve newlines and basic formatting while preventing XSS
+    # Don't strip whitespace to maintain formatting
     sanitized_text = bleach.clean(
         ready_message.content[0].text.value,
         tags=[],
         attributes={},
-        strip=True
+        strip=False
     )
         
     return ChatResponse(
