@@ -40,6 +40,7 @@ User Question: {user_message}"""
         db.add(chat)
         db.commit()
         db.refresh(chat)
+        db.close()
 
     @staticmethod
     def get_chat_by_name(id: int, chat_name):
@@ -58,9 +59,10 @@ User Question: {user_message}"""
 
     
     @staticmethod
-    def addMessageToDb(chat: Chat, message: str, isIncoming: bool):
+    def addMessageToDb(id: int, chat_name: str, message: str, isIncoming: bool):
         db = SessionLocal()
         try:
+            chat = db.query(Chat).filter_by(user_id=id, name=chat_name).first()
             new_message = Message(
                 message=message,
                 isIncoming=isIncoming
@@ -80,3 +82,23 @@ User Question: {user_message}"""
             )
         finally:
             db.close()
+    
+    @staticmethod
+    @decorator_get_user_instance
+    def get_user_history(user: User, db, name: str):       
+        chat = db.query(Chat).filter_by(user_id=user.id, name=name).first()
+
+        if not chat: 
+            return None
+
+        return chat.messages;
+
+    @staticmethod
+    @decorator_get_user_instance
+    def get_user_chats(user, db):
+        chats = db.query(Chat).filter_by(user_id=user.id).all()
+
+        if not chats:
+            return None
+        
+        return [x.name for x in chats]
