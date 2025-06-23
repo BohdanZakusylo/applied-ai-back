@@ -3,12 +3,13 @@ import os
 import bleach
 
 from openai import OpenAI
-from fastapi import APIRouter, HTTPException, status, Depends
+from fastapi import APIRouter, HTTPException, status, Depends, status
 from app.models.chat import (
     ChatMessage, 
     ChatResponse, 
     ChatHistoryResponse, 
     ConversationHistory, 
+    NewCratedChatResponse
 )
 from app.dependencies import get_current_user
 from app.AI.integration.rag_service import RAGService
@@ -49,7 +50,11 @@ async def send_message(user_message: ChatMessage, current_user: str = Depends(ge
         try:
             # Fetch user profile for context
             user_profile = UserService.get_user_by_id(int(current_user))
-            
+
+            chat = ChatService.get_chat_by_name(current_user, ChatMessage.chat_name)
+
+            if chat:
+                ChatService.addMessageToDb(user_profile, ChatMessage.message, False)
             # Build enhanced prompt with user context
             prompt = ChatService.build_user_context_prompt(user_profile, user_message.message)
             
@@ -90,6 +95,9 @@ async def send_message(user_message: ChatMessage, current_user: str = Depends(ge
                 if message.role == "assistant":
                     ready_message = message
                     break
+            
+            if chat:
+                 ChatService.addMessageToDb(user_profile, ChatMessage.message, True)
 
         except Exception as ex:
             print(f"Error in chat processing: {ex}")
@@ -132,6 +140,13 @@ async def get_questions_remaining(current_user: str = Depends(get_current_user))
     """
     remaining = UserService.get_monthly_questions_remaining(int(current_user))
     return {"questions_remaining": remaining, "monthly_limit": MONTHLY_QUESTION_LIMIT}
+
+@router.post("/new-chat", response_model=NewCratedChatResponse, status_code=status.HTTP_201_CREATED)
+async def create_new_chat(current_user: str = Depends(get_current_user)):
+    ChatService.saveNewChat(user_id=current_user, name=f"chat-{datetime.now().isoformat()}")
+    return NewCratedChatResponse(response="Chat has been created succesfuly")
+
+#delete chat
 
 @router.get("/history", response_model=ChatHistoryResponse)
 async def get_chat_history(current_user: str = Depends(get_current_user), limit: int = 50, offset: int = 0):

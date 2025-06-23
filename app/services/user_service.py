@@ -2,7 +2,7 @@
 # This module will contain user-related business logic
 
 from app.orm.engine import SessionLocal
-from app.orm.db_user import User
+from app.orm.models.db_user import User
 from fastapi import HTTPException, status
 from email_validator import validate_email, EmailNotValidError
 from hashlib import sha256

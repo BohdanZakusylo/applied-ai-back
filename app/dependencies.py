@@ -3,7 +3,7 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from typing import Optional
 from app.services.jwt_service import decode_jwt
 from app.orm.engine import SessionLocal
-from app.orm.db_user import User
+from app.orm.models.db_user import User
 
 # Define the security scheme for Swagger UI
 security = HTTPBearer()

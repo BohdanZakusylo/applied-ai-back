@@ -7,7 +7,7 @@ from app.orm.engine import SessionLocal
 from app.models.user import DatabaseUser
 from email_validator import validate_email, EmailNotValidError
 from fastapi import HTTPException, status
-from app.orm.db_user import User
+from app.orm.models.db_user import User
 from hashlib import sha256
 import random
 import time
@@ -74,6 +74,7 @@ class AuthService:
             session.close()
             raise
         except Exception as e:
+            print(e)
             session.rollback()
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
