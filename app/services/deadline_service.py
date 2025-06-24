@@ -4,7 +4,7 @@ from sqlalchemy import select
 from fastapi import HTTPException, status
 
 from app.orm.engine import SessionLocal
-from app.orm.deadline import Deadline
+from app.orm.models.deadline import Deadline
 from app.models.deadline import DeadlineCreate, DeadlineUpdate
 
 

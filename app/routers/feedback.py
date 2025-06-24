@@ -1,5 +1,5 @@
 from fastapi import APIRouter, status, Depends
-from app.orm.feedback import Feedback
+from app.orm.models.feedback import Feedback
 from app.models.feedback import FeedbackCreate
 from app.services.feedback_service import FeedbackService
 from app.dependencies import get_current_user

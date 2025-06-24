@@ -1,6 +1,6 @@
-from .base import Base
+from ..base import Base
 
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import String, Text, Integer, DateTime
 from typing import Optional
 from datetime import datetime
@@ -12,6 +12,8 @@ class User(Base):
     name: Mapped[str] = mapped_column(String(30))
     email: Mapped[str] = mapped_column(String(30))
     password: Mapped[str] = mapped_column(String(256))
+    chats = relationship("Chat", back_populates="user", cascade="all, delete")
+    deadlines = relationship("Deadline", back_populates="user", cascade="all, delete-orphan")
     token: Mapped[Optional[str]] = mapped_column(Text)
     insurance_provider: Mapped[Optional[str]] = mapped_column(String(30))
     general_practitioner: Mapped[Optional[str]] = mapped_column(String(30))
