@@ -10,8 +10,8 @@ from app.models.chat import (
     ChatHistoryResponse, 
     ConversationHistory, 
     NewCratedChatResponse,
-    GetHistory,
-    GetChats
+    GetChats,
+    DeleteChat
 )
 from app.dependencies import get_current_user
 from app.AI.integration.rag_service import RAGService
@@ -150,7 +150,11 @@ async def create_new_chat(current_user: str = Depends(get_current_user)):
     ChatService.saveNewChat(user_id=current_user, name=chat_name)
     return NewCratedChatResponse(response="Chat with has been created succesfuly", chat_name=chat_name)
 
-#delete chat
+@router.delete("/delete", response_model=DeleteChat, status_code=status.HTTP_200_OK)
+async def get_chat_history(chat_name: str = Query(...), current_user: str = Depends(get_current_user)):
+    ChatService.delete_chat(user_id=current_user, name=chat_name)
+
+    return DeleteChat(response="Chat has been deleted succesfuly")
 
 @router.get("/chats", response_model=GetChats, status_code=status.HTTP_200_OK)
 async def get_all_chats(current_user: str = Depends(get_current_user)):

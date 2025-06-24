@@ -102,3 +102,12 @@ User Question: {user_message}"""
             return None
         
         return [x.name for x in chats]
+
+    @staticmethod
+    @decorator_get_user_instance
+    def delete_chat(user, db, name):
+        chat_to_delete = db.query(Chat).filter_by(user_id=user.id, name=name).first()
+
+        if chat_to_delete:
+            db.delete(chat_to_delete)
+            db.commit()

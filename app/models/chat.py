@@ -32,3 +32,6 @@ class GetHistory(BaseModel):
 
 class GetChats(BaseModel):
     chat_names: List[str]
+
+class DeleteChat(BaseModel):
+    response: str
