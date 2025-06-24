@@ -16,21 +16,24 @@ class ChatService:
     
     @staticmethod
     def build_user_context_prompt(user_profile: User, user_message: str) -> str:
-        prompt_template = f"""User Profile Context:
+        prompt_template = f"""User Profile:
 - Insurance Provider: {user_profile.insurance_provider if user_profile.insurance_provider else "Not specified"} 
 - General Practitioner: {user_profile.general_practitioner if user_profile.general_practitioner else "Not specified"}
 - Medical Information: {user_profile.medical_information if user_profile.medical_information else "Not specified"}
 
-Instructions for AI:
-- Provide personalized advice based on the user's insurance provider when relevant
-- Consider the user's medical information when giving health-related guidance
-- Reference their GP when suggesting medical appointments or consultations
-- Focus specifically on Dutch insurance matters and regulations
-- If the user hasn't specified insurance details, suggest they add this information to their profile for better assistance
+RULES:
+- Always follow the system prompt.
+- Keep sentences clear and direct
+- If profile incomplete (Not specified), suggest adding insurance details to their profile.
+- End your response with a "Next Steps:" paragraph with specific actionable advice, ONLY if applicable, do not force it.
+- Keep track of previous questions and answers.
 
-User Question: {user_message}"""
+User Question: {user_message}
+
+Get the answer from your vector store."""
         
         return prompt_template
+        
     
     @staticmethod
     @decorator_get_user_instance
@@ -40,6 +43,8 @@ User Question: {user_message}"""
         db.add(chat)
         db.commit()
         db.refresh(chat)
+
+        db.close()
 
     @staticmethod
     def get_chat_by_name(id: int, chat_name):
@@ -56,11 +61,13 @@ User Question: {user_message}"""
         finally:
             session.close()
 
+
     
     @staticmethod
-    def addMessageToDb(chat: Chat, message: str, isIncoming: bool):
+    def addMessageToDb(id: int, chat_name: str, message: str, isIncoming: bool):
         db = SessionLocal()
         try:
+            chat = db.query(Chat).filter_by(user_id=id, name=chat_name).first()
             new_message = Message(
                 message=message,
                 isIncoming=isIncoming
@@ -80,3 +87,33 @@ User Question: {user_message}"""
             )
         finally:
             db.close()
+    
+    @staticmethod
+    @decorator_get_user_instance
+    def get_user_history(user: User, db, name: str):       
+        chat = db.query(Chat).filter_by(user_id=user.id, name=name).first()
+
+        if not chat: 
+            return None
+
+        return chat.messages;
+
+    @staticmethod
+    @decorator_get_user_instance
+    def get_user_chats(user, db):
+        chats = db.query(Chat).filter_by(user_id=user.id).all()
+
+        if not chats:
+            return None
+        
+        return [x.name for x in chats]
+
+    @staticmethod
+    @decorator_get_user_instance
+    def delete_chat(user, db, name):
+        chat_to_delete = db.query(Chat).filter_by(user_id=user.id, name=name).first()
+
+        if chat_to_delete:
+            db.delete(chat_to_delete)
+            db.commit()
+

@@ -3,13 +3,16 @@ import os
 import bleach
 
 from openai import OpenAI
-from fastapi import APIRouter, HTTPException, status, Depends, status
+
+from fastapi import APIRouter, HTTPException, status, Depends, status, Query
 from app.models.chat import (
     ChatMessage, 
     ChatResponse, 
     ChatHistoryResponse, 
     ConversationHistory, 
-    NewCratedChatResponse
+    NewCratedChatResponse,
+    GetChats,
+    DeleteChat
 )
 from app.dependencies import get_current_user
 from app.AI.integration.rag_service import RAGService
@@ -51,10 +54,10 @@ async def send_message(user_message: ChatMessage, current_user: str = Depends(ge
             # Fetch user profile for context
             user_profile = UserService.get_user_by_id(int(current_user))
 
-            chat = ChatService.get_chat_by_name(current_user, ChatMessage.chat_name)
+            chat_existing = ChatService.get_chat_by_name(current_user, user_message.chat_name)
 
-            if chat:
-                ChatService.addMessageToDb(user_profile, ChatMessage.message, False)
+            if chat_existing:
+                ChatService.addMessageToDb(current_user, user_message.chat_name,user_message.message, False)
             # Build enhanced prompt with user context
             prompt = ChatService.build_user_context_prompt(user_profile, user_message.message)
             
@@ -96,14 +99,13 @@ async def send_message(user_message: ChatMessage, current_user: str = Depends(ge
                     ready_message = message
                     break
             
-            if chat:
-                 ChatService.addMessageToDb(user_profile, ChatMessage.message, True)
+
 
         except Exception as ex:
-            print(f"Error in chat processing: {ex}")
+            print(ex)
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Error processing chat message: {str(ex)}"
+                detail=f"Error processing chat message"
             )
     
     # Check if we got a valid response
@@ -120,12 +122,17 @@ async def send_message(user_message: ChatMessage, current_user: str = Depends(ge
             detail="Empty response from AI"
         )
     
+    # Preserve newlines and basic formatting while preventing XSS
+    # Don't strip whitespace to maintain formatting
     sanitized_text = bleach.clean(
         ready_message.content[0].text.value,
         tags=[],
         attributes={},
-        strip=True
+        strip=False
     )
+
+    if chat_existing:
+          ChatService.addMessageToDb(current_user, user_message.chat_name, sanitized_text, True)
         
     return ChatResponse(
         response=sanitized_text,
@@ -143,36 +150,43 @@ async def get_questions_remaining(current_user: str = Depends(get_current_user))
 
 @router.post("/new-chat", response_model=NewCratedChatResponse, status_code=status.HTTP_201_CREATED)
 async def create_new_chat(current_user: str = Depends(get_current_user)):
-    ChatService.saveNewChat(user_id=current_user, name=f"chat-{datetime.now().isoformat()}")
-    return NewCratedChatResponse(response="Chat has been created succesfuly")
 
-#delete chat
+    chat_name = f"chat-{datetime.now().isoformat()}"
+    ChatService.saveNewChat(user_id=current_user, name=chat_name)
+    return NewCratedChatResponse(response="Chat with has been created succesfuly", chat_name=chat_name)
 
-@router.get("/history", response_model=ChatHistoryResponse)
-async def get_chat_history(current_user: str = Depends(get_current_user), limit: int = 50, offset: int = 0):
-    """
-    Get user's conversation history
-    """
-    # TODO: Implement chat history logic
-    # - Use current_user (user ID from JWT token)
-    # - Fetch conversation history from database
-    # - Apply pagination (limit, offset)
-    # - Return conversations
-    mock_conversations = [
-        ConversationHistory(
-            id="conv-1",
-            user_message="What does my insurance cover?",
-            ai_response="Your insurance covers basic healthcare services...",
-            timestamp=datetime.now()
-        ),
-        ConversationHistory(
-            id="conv-2",
-            user_message="How do I claim reimbursement?",
-            ai_response="To claim reimbursement, you need to...",
-            timestamp=datetime.now()
+@router.delete("/delete", response_model=DeleteChat, status_code=status.HTTP_200_OK)
+async def get_chat_history(chat_name: str = Query(...), current_user: str = Depends(get_current_user)):
+    ChatService.delete_chat(user_id=current_user, name=chat_name)
+
+    return DeleteChat(response="Chat has been deleted succesfuly")
+
+@router.get("/chats", response_model=GetChats, status_code=status.HTTP_200_OK)
+async def get_all_chats(current_user: str = Depends(get_current_user)):
+    chats = ChatService.get_user_chats(user_id=current_user)
+    return GetChats(chat_names=chats)
+
+@router.get("/history", response_model=ChatHistoryResponse, status_code=status.HTTP_200_OK)
+async def get_chat_history(chat_name: str = Query(...), current_user: str = Depends(get_current_user)):
+    messages = ChatService.get_user_history(user_id=current_user, name=chat_name)
+
+    if not messages:
+        return ChatHistoryResponse(
+            conversations=[],
+            message=f"No messages were found"
         )
+
+    conversations = [
+        ConversationHistory(
+            id=msg.id,
+            message=msg.message,
+            isIncoming=msg.isIncoming,
+            created_at=msg.created_at
+        )
+        for msg in messages
     ]
+
     return ChatHistoryResponse(
-        conversations=mock_conversations,
-        total_count=len(mock_conversations)
+        conversations=conversations,
+        message=f"Found {len(conversations)} messages in chat '{chat_name}'"
     )
