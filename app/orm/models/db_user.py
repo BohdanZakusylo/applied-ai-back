@@ -13,6 +13,7 @@ class User(Base):
     email: Mapped[str] = mapped_column(String(30))
     password: Mapped[str] = mapped_column(String(256))
     chats = relationship("Chat", back_populates="user", cascade="all, delete")
+    deadlines = relationship("Deadline", back_populates="user", cascade="all, delete-orphan")
     token: Mapped[Optional[str]] = mapped_column(Text)
     insurance_provider: Mapped[Optional[str]] = mapped_column(String(30))
     general_practitioner: Mapped[Optional[str]] = mapped_column(String(30))

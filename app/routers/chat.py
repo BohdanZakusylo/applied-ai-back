@@ -3,6 +3,7 @@ import os
 import bleach
 
 from openai import OpenAI
+
 from fastapi import APIRouter, HTTPException, status, Depends, status, Query
 from app.models.chat import (
     ChatMessage, 
@@ -99,6 +100,7 @@ async def send_message(user_message: ChatMessage, current_user: str = Depends(ge
                     break
             
 
+
         except Exception as ex:
             print(ex)
             raise HTTPException(
@@ -148,6 +150,7 @@ async def get_questions_remaining(current_user: str = Depends(get_current_user))
 
 @router.post("/new-chat", response_model=NewCratedChatResponse, status_code=status.HTTP_201_CREATED)
 async def create_new_chat(current_user: str = Depends(get_current_user)):
+
     chat_name = f"chat-{datetime.now().isoformat()}"
     ChatService.saveNewChat(user_id=current_user, name=chat_name)
     return NewCratedChatResponse(response="Chat with has been created succesfuly", chat_name=chat_name)

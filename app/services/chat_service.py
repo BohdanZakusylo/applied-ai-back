@@ -43,6 +43,7 @@ Get the answer from your vector store."""
         db.add(chat)
         db.commit()
         db.refresh(chat)
+
         db.close()
 
     @staticmethod
@@ -59,6 +60,7 @@ Get the answer from your vector store."""
             )
         finally:
             session.close()
+
 
     
     @staticmethod
@@ -114,3 +116,4 @@ Get the answer from your vector store."""
         if chat_to_delete:
             db.delete(chat_to_delete)
             db.commit()
+

@@ -18,9 +18,9 @@ class ConversationHistory(BaseModel):
     isIncoming: bool
     created_at: datetime
 
-
 class ChatHistoryResponse(BaseModel):
     conversations: List[ConversationHistory]
+
     message: str
 
 class NewCratedChatResponse(BaseModel):
