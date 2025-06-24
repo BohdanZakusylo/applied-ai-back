@@ -2,8 +2,12 @@
 # This module will contain chat/AI-related business logic
 
 import asyncio
-from typing import Dict, Optional
-from app.orm.db_user import User
+from fastapi import HTTPException, status
+from app.orm.models.db_user import User
+from app.orm.models.chat import Chat
+from app.orm.models.message import Message
+from app.orm.engine import SessionLocal
+from app.orm.db_functions.get_user_instance import decorator_get_user_instance
 
 class ChatService:
     """
@@ -31,30 +35,82 @@ Get the answer from your vector store."""
         return prompt_template
         
     
-    async def save_conversation(user_id: str, user_message: str, ai_response: str):
-        """
-        Save conversation to database
-        TODO: Implement conversation storage
-        """
-        pass
+    @staticmethod
+    @decorator_get_user_instance
+    def saveNewChat(user: User, db, name: str):
+        chat = Chat(name=name)
+        user.chats.append(chat)
+        db.add(chat)
+        db.commit()
+        db.refresh(chat)
+        db.close()
+
+    @staticmethod
+    def get_chat_by_name(id: int, chat_name):
+        session = SessionLocal()
+        try:
+            chat = session.query(Chat).filter_by(user_id=id, name=chat_name).first()
+
+            return chat
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Internal error gettign the chat"
+            )
+        finally:
+            session.close()
+
     
-    async def get_conversation_history(user_id: str, limit: int = 50, offset: int = 0):
-        """
-        Get user's conversation history
-        TODO: Implement conversation history retrieval
-        """
-        pass
+    @staticmethod
+    def addMessageToDb(id: int, chat_name: str, message: str, isIncoming: bool):
+        db = SessionLocal()
+        try:
+            chat = db.query(Chat).filter_by(user_id=id, name=chat_name).first()
+            new_message = Message(
+                message=message,
+                isIncoming=isIncoming
+            )
+            chat.messages.append(new_message)
+            db.add(new_message)
+            db.commit()
+            db.refresh(new_message)
+
+            return new_message
+        except Exception as e:
+            db.rollback()
+            print(f"Error adding message: {e}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to add message to chat"
+            )
+        finally:
+            db.close()
     
-    async def clear_conversation_history(user_id: str):
-        """
-        Clear user's conversation history
-        TODO: Implement conversation history deletion
-        """
-        pass
-    
-    async def build_context_from_history(user_id: str, limit: int = 5):
-        """
-        Build conversation context from recent history
-        TODO: Implement context building for AI
-        """
-        pass 
+    @staticmethod
+    @decorator_get_user_instance
+    def get_user_history(user: User, db, name: str):       
+        chat = db.query(Chat).filter_by(user_id=user.id, name=name).first()
+
+        if not chat: 
+            return None
+
+        return chat.messages;
+
+    @staticmethod
+    @decorator_get_user_instance
+    def get_user_chats(user, db):
+        chats = db.query(Chat).filter_by(user_id=user.id).all()
+
+        if not chats:
+            return None
+        
+        return [x.name for x in chats]
+
+    @staticmethod
+    @decorator_get_user_instance
+    def delete_chat(user, db, name):
+        chat_to_delete = db.query(Chat).filter_by(user_id=user.id, name=name).first()
+
+        if chat_to_delete:
+            db.delete(chat_to_delete)
+            db.commit()

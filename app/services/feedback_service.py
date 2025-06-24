@@ -1,5 +1,5 @@
 from app.orm.engine import SessionLocal
-from app.orm.feedback import Feedback
+from app.orm.models.feedback import Feedback
 from app.models.feedback import FeedbackCreate
 from fastapi import HTTPException, status
 import bleach

@@ -4,8 +4,7 @@ from app.api.v1 import api_v1_router
 from contextlib import asynccontextmanager
 from app.orm.base import Base
 from app.orm.engine import engine
-from app.orm.db_user import User
-from app.orm.deadline import Deadline
+from app.orm import models
 
 
 # Create FastAPI app instance
