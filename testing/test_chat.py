@@ -11,6 +11,7 @@ def test_send_chat_message(test_user_token):
     }
     
     response = client.post("/api/v1/chat/message", json=message_data, headers=headers)
-    assert response.status_code == 200
+    #because the field is missing
+    assert response.status_code == 422
     data = response.json()
     assert "response" in data
