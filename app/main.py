@@ -1,7 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.config import settings
 from app.api.v1 import api_v1_router
+from contextlib import asynccontextmanager
+from app.orm.base import Base
+from app.orm.engine import engine
+from app.orm import models
+
 
 # Create FastAPI app instance
 app = FastAPI(
@@ -9,13 +13,14 @@ app = FastAPI(
     description="REST API for AI Healthcare Assistant focused on Dutch insurance matters for international students",
     version="1.0.0",
     docs_url="/docs",
-    redoc_url="/redoc"
+    redoc_url="/redoc",
+    # lifespan=lifespan
 )
 
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.allowed_origins,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -23,6 +28,10 @@ app.add_middleware(
 
 # Include API v1 router
 app.include_router(api_v1_router)
+
+@app.on_event("startup")
+def on_startup():
+    Base.metadata.create_all(bind=engine)
 
 # Root endpoint
 @app.get("/")

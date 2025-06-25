@@ -1,0 +1,43 @@
+name: Run fastapi endpoints tests
+
+on: 
+  pull_request:
+    branches:
+      - development
+  push:
+    branches:
+      - development
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: "Create .env file"
+        run: |
+          echo "POSTGRES_USER=postgres" >> .env
+          echo "POSTGRES_PASSWORD=postgres" >> .env
+          echo "POSTGRES_DB=postgres" >> .env
+          echo "GPT_API_KEY=${{ secrets.GPT_API_KEY }}" >> .env
+          echo "ASS_ID=${{ secrets.ASS_ID }}" >> .env  
+          echo "PGURL=${{ secrets.PGURL }}" >> .env  
+          echo "PUBLIC_KEY_PATH=${{ secrets.PUBLIC_KEY_PATH }}" >> .env  
+          echo "PRIVATE_KEY_PATH=${{ secrets.PRIVATE_KEY_PATH }}" >> .env  
+
+      - name: "Create private and public key folders"
+        run: |
+          mkdir -p app/keys/
+          echo "${{ secrets.PUB_KEY }}" > app/keys/public_key.pem
+          echo "${{ secrets.PRVT_KEY }}" > app/keys/private_key.pem
+
+      - name: Build Docker image
+        run: docker compose up --build -d
+
+      - name: Run container
+        run: docker exec fastapi-app python -m pytest testing/ -v -p no:warnings
+      
+      - name: Shutdown Docker containers
+        run: docker compose down
